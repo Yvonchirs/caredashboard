@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #241e4e;
+  --color-ink-muted: #4a4458;
+  --color-ink-subtle: #6f6a80;
+  --color-ink-50: #f4f3f8;
+  --color-ink-100: #e8e6f0;
+  --color-ink-200: #d3d0e1;
+  --color-ink-800: #342d66;
+
+  --color-brand: #f77600;
+  --color-brand-dark: #c45c00;
+  --color-brand-50: #fff4e8;
+  --color-brand-100: #ffe6cc;
+
+  --color-canvas: #fff8ee;
+  --color-surface: #ffffff;
+  --color-line: #ebe4d8;
+  --color-line-strong: #d9cfbf;
+
+  --color-success: #1f7a4d;
+  --color-success-50: #e9f6ef;
+  --color-danger: #b42318;
+  --color-danger-50: #fdecea;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-canvas text-ink;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand;
+  }
+
+  ::selection {
+    @apply bg-brand-100;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}

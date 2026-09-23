@@ -30,3 +30,11 @@ Project rules for Claude Code. Follow these on every task.
 ## Git workflow
 
 - When a feature is complete (lint clean and build passing), commit it and push directly to GitHub.
+
+## Project layout
+
+- `frontend/`: Next.js 16 app. Read `frontend/AGENTS.md`: Next 16 APIs differ from older versions, and its docs are in `frontend/node_modules/next/dist/docs/`. The frontend calls the API server-side only (`src/lib/api.ts`), and the JWT is stored in an httpOnly `care_session` cookie. `/uploads/*` is rewritten to the API.
+- `backend/`: NestJS 12 + MikroORM 7, both ESM-only. Use `.js` extensions in relative imports. Entities use `defineEntity` (no decorators). SQLite runs on Node's built-in `node:sqlite` via `NodeSqliteDialect`. Don't reintroduce `better-sqlite3`: it segfaults on the Node version used here.
+- The backend builds with plain `tsc`. The Nest CLI crashes on Node 22.13 (`ERR_REQUIRE_CYCLE_MODULE`).
+- Swagger UI is at `http://localhost:4000/docs`.
+- `npm run db:seed` in `backend/` resets the DB. Seed logins are in `README.md`.
