@@ -18,7 +18,7 @@ export function LoginForm({ next }: { next: string }) {
       <Field label="Password" htmlFor="password">
         <Input id="password" name="password" type="password" autoComplete="current-password" required />
       </Field>
-      <SubmitButton className="w-full" pendingText="Signing in…">
+      <SubmitButton className="w-full" pendingText="Signing in">
         Sign in
       </SubmitButton>
     </form>

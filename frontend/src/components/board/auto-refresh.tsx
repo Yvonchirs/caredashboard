@@ -26,8 +26,8 @@ export function AutoRefresh() {
   return (
     <p className="flex items-center gap-2 text-xs text-ink-subtle" aria-live="polite">
       <span className="relative flex size-2">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-success/50 motion-reduce:hidden" />
-        <span className="relative inline-flex size-2 rounded-full bg-success" />
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand/60 motion-reduce:hidden" />
+        <span className="relative inline-flex size-2 rounded-full bg-brand" />
       </span>
       Live · refreshes every minute
       {updatedAt && (

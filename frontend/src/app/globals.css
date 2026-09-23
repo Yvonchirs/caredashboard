@@ -1,28 +1,37 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-anton), "Arial Narrow", sans-serif;
 
-  --color-ink: #241e4e;
-  --color-ink-muted: #4a4458;
-  --color-ink-subtle: #6f6a80;
-  --color-ink-50: #f4f3f8;
-  --color-ink-100: #e8e6f0;
-  --color-ink-200: #d3d0e1;
-  --color-ink-800: #342d66;
+  /* CARE brand */
+  --color-ink: #090015;
+  --color-ink-muted: #3d3650;
+  --color-ink-subtle: #6b6478;
+  --color-ink-50: #f6f3f0;
+  --color-ink-100: #ece6e2;
+  --color-ink-200: #d6ceca;
+  --color-ink-800: #1d1530;
 
-  --color-brand: #f77600;
-  --color-brand-dark: #c45c00;
-  --color-brand-50: #fff4e8;
-  --color-brand-100: #ffe6cc;
+  --color-navy: #241e4e;
+  --color-navy-700: #2f2863;
+  --color-navy-300: #9c97c4;
+
+  --color-brand: #eb7100;
+  --color-brand-light: #f77600;
+  --color-brand-dark: #b35600;
+  --color-brand-50: #fff1e3;
+  --color-brand-100: #ffe0c2;
+
+  --color-plum: #5c2163;
 
   --color-canvas: #fff8ee;
   --color-surface: #ffffff;
-  --color-line: #ebe4d8;
-  --color-line-strong: #d9cfbf;
+  --color-line: #e1dbd8;
+  --color-line-strong: #c9c0bb;
 
   --color-success: #1f7a4d;
-  --color-success-50: #e9f6ef;
+  --color-success-50: #e7f4ec;
   --color-danger: #b42318;
   --color-danger-50: #fdecea;
 }
@@ -34,7 +43,6 @@
 
   body {
     @apply bg-canvas text-ink;
-    font-feature-settings: "cv11", "ss01";
   }
 
   :focus-visible {
@@ -42,10 +50,25 @@
   }
 
   ::selection {
-    @apply bg-brand-100;
+    @apply bg-brand-100 text-ink;
   }
 }
 
 @utility tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Anton is CARE's headline face: condensed, heavy, tight leading. */
+@utility font-headline {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 0.005em;
+}
+
+@utility eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }

@@ -44,7 +44,7 @@ function CreateUserForm({ projects, onClose }: { projects: Project[]; onClose: (
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
-        <SubmitButton pendingText="Creating…">Create user</SubmitButton>
+        <SubmitButton pendingText="Creating">Create user</SubmitButton>
       </div>
     </form>
   );
@@ -84,11 +84,11 @@ function UserFields({ user, projects, isSelf }: { user?: User; projects: Project
       </div>
 
       <fieldset>
-        <legend className="text-[13px] font-medium">Project access</legend>
+        <legend className="text-sm font-bold">Project access</legend>
         <p className="mt-0.5 text-xs text-ink-subtle">
           {role === "admin" ? "Admins can log activities for every project." : "Projects this person can log activities for."}
         </p>
-        <div className="mt-3 grid max-h-56 gap-1 overflow-y-auto rounded-lg border border-line p-1.5 sm:grid-cols-2">
+        <div className="mt-3 grid max-h-56 gap-1 overflow-y-auto rounded-md border border-line p-1.5 sm:grid-cols-2">
           {projects.map((project) => (
             <label
               key={project.id}
@@ -100,10 +100,10 @@ function UserFields({ user, projects, isSelf }: { user?: User; projects: Project
                 value={project.id}
                 defaultChecked={assigned.has(project.id)}
                 disabled={role === "admin"}
-                className="mt-0.5 size-4 accent-ink"
+                className="mt-0.5 size-4 accent-brand"
               />
               <span className="min-w-0">
-                <span className="block text-xs font-semibold text-ink-muted">{project.code}</span>
+                <span className="block text-xs font-black text-brand-dark">{project.code}</span>
                 <span className="block leading-snug">{project.name}</span>
               </span>
             </label>
@@ -169,7 +169,7 @@ export function UserActions({ user, projects, isSelf }: { user: User; projects: 
       {menuOpen && (
         <div
           role="menu"
-          className="absolute top-full right-0 z-20 mt-1 w-52 rounded-lg border border-line-strong bg-surface p-1 text-left shadow-lg shadow-ink/10"
+          className="absolute top-full right-0 z-20 mt-1 w-52 rounded-md border border-line-strong bg-surface p-1 text-left shadow-lg shadow-ink/10"
         >
           <button
             role="menuitem"
@@ -223,7 +223,7 @@ function EditUserForm({ user, projects, isSelf, onClose }: { user: User; project
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
-        <SubmitButton pendingText="Saving…">Save changes</SubmitButton>
+        <SubmitButton pendingText="Saving">Save changes</SubmitButton>
       </div>
     </form>
   );
@@ -246,7 +246,7 @@ function ResetPassword({ user, onClose }: { user: User; onClose: () => void }) {
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
-        <SubmitButton pendingText="Resetting…">Reset password</SubmitButton>
+        <SubmitButton pendingText="Resetting">Reset password</SubmitButton>
       </div>
     </form>
   );
@@ -259,8 +259,8 @@ function SecretResult({ message, secret, onClose }: { message?: string; secret: 
     <div className="space-y-5 text-left">
       <Alert tone="success">{message}</Alert>
       <div>
-        <p className="text-[13px] font-medium">One-time password</p>
-        <div className="mt-2 flex items-center gap-2 rounded-lg border border-line-strong bg-canvas px-3 py-2">
+        <p className="text-sm font-bold">One-time password</p>
+        <div className="mt-2 flex items-center gap-2 rounded-md border-2 border-dashed border-brand bg-brand-50 px-3 py-2">
           <code className="flex-1 font-mono text-base tracking-wider select-all">{secret}</code>
           <Button
             variant="ghost"

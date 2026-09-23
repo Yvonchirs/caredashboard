@@ -10,10 +10,11 @@ export default async function PasswordPage() {
 
   return (
     <div className="mx-auto max-w-md">
-      <h1 className="text-2xl font-semibold tracking-tight">
+      <p className="eyebrow text-brand">Account</p>
+      <h1 className="mt-1 font-headline text-5xl">
         {user?.mustChangePassword ? "Choose a new password" : "Change password"}
       </h1>
-      <p className="mt-1 text-sm text-ink-muted">Use at least 8 characters. Avoid passwords you use elsewhere.</p>
+      <p className="mt-3 text-[15px] text-ink-muted">Use at least 8 characters. Avoid passwords you use elsewhere.</p>
       {user?.mustChangePassword && (
         <div className="mt-6">
           <Alert tone="success">You signed in with a one-time password. Set your own password to continue.</Alert>

@@ -25,6 +25,7 @@ Project rules for Claude Code. Follow these on every task.
 
 - Build a modern, professional UI. Avoid generic "AI-looking" design: no gratuitous gradients, glowing effects, emoji-heavy copy or stock card grids.
 - Avoid box shadows. Use them only for modals and overlays. Rely on borders, spacing and contrast for hierarchy.
+- Follow CARE's brand language (taken from care.org, since care.org.rw is being rebuilt): Anton for headlines (`font-headline`), Roboto for body text, navy `#241E4E` bands, ink `#090015` text, CARE orange `#EB7100` for primary actions (with dark text), cream `#FFF8EE` pages, warm grey `#E1DBD8` lines, pill-shaped buttons. Tokens are in `frontend/src/app/globals.css`.
 - Check UI work against the guidance in the `modern-web-guidance@claude-plugins-official` plugin and fix anything that doesn't match.
 
 ## Git workflow

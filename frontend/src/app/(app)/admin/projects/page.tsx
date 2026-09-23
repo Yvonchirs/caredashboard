@@ -14,19 +14,20 @@ export default async function ProjectsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="Administration"
         title="Projects"
         description="Projects appear on the board when staff log activities under them. Archived projects are hidden."
         actions={<NewProjectButton />}
       />
 
-      <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+      <div className="overflow-x-auto rounded-md border border-line bg-surface">
         <table className="w-full min-w-[640px] text-left text-sm">
-          <thead className="border-b border-line bg-canvas/60 text-xs text-ink-muted">
+          <thead className="border-b-2 border-ink text-xs tracking-wide text-ink uppercase">
             <tr>
-              <th scope="col" className="px-5 py-3 font-medium">Project</th>
-              <th scope="col" className="px-5 py-3 font-medium">Location</th>
-              <th scope="col" className="px-5 py-3 font-medium">Staff</th>
-              <th scope="col" className="px-5 py-3 font-medium">Status</th>
+              <th scope="col" className="px-5 py-3.5 font-black">Project</th>
+              <th scope="col" className="px-5 py-3.5 font-black">Location</th>
+              <th scope="col" className="px-5 py-3.5 font-black">Staff</th>
+              <th scope="col" className="px-5 py-3.5 font-black">Status</th>
               <th scope="col" className="px-5 py-3"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
@@ -34,7 +35,7 @@ export default async function ProjectsPage() {
             {projects.map((project) => (
               <tr key={project.id} className={project.isActive ? undefined : "text-ink-subtle"}>
                 <td className="px-5 py-3.5">
-                  <p className="font-medium text-ink">{project.name}</p>
+                  <p className="font-bold text-ink">{project.name}</p>
                   <p className="text-xs text-ink-subtle">{project.code}</p>
                 </td>
                 <td className="px-5 py-3.5 text-ink-muted">{project.location ?? "—"}</td>

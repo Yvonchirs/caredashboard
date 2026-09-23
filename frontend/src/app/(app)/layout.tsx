@@ -13,23 +13,23 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
 
   return (
     <>
-      <header className="border-b border-line bg-surface">
+      <header className="bg-navy text-white">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between gap-4">
+          <div className="flex h-18 items-center justify-between gap-4">
             <Logo />
             <div className="flex items-center gap-1">
               <div className="mr-2 hidden text-right sm:block">
-                <p className="text-sm leading-tight font-medium">{user.name}</p>
-                <p className="text-xs text-ink-subtle">{user.email}</p>
+                <p className="text-sm leading-tight font-bold">{user.name}</p>
+                <p className="text-xs text-white/60">{user.email}</p>
               </div>
               {user.role === "admin" && (
-                <Badge tone="brand" className="mr-2 hidden sm:inline-flex">
+                <Badge tone="brand" className="mr-2 hidden ring-0 sm:inline-flex">
                   Admin
                 </Badge>
               )}
               <Link
                 href="/account/password"
-                className="rounded-lg p-2 text-ink-muted hover:bg-ink-50 hover:text-ink"
+                className="rounded-full p-2.5 text-white/75 hover:bg-white/10 hover:text-white"
                 aria-label="Change password"
                 title="Change password"
               >
@@ -38,7 +38,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
               <form action={logout}>
                 <button
                   type="submit"
-                  className="rounded-lg p-2 text-ink-muted hover:bg-ink-50 hover:text-ink"
+                  className="rounded-full p-2.5 text-white/75 hover:bg-white/10 hover:text-white"
                   aria-label="Sign out"
                   title="Sign out"
                 >
@@ -50,7 +50,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           {!user.mustChangePassword && <AppNav role={user.role} />}
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:px-8">{children}</main>
     </>
   );
 }

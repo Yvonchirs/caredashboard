@@ -15,19 +15,20 @@ export default async function UsersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="Administration"
         title="Users"
         description="Create accounts, choose which projects each person can log activities for, and manage access."
         actions={<NewUserButton projects={activeProjects} />}
       />
 
-      <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+      <div className="overflow-x-auto rounded-md border border-line bg-surface">
         <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="border-b border-line bg-canvas/60 text-xs text-ink-muted">
+          <thead className="border-b-2 border-ink text-xs tracking-wide text-ink uppercase">
             <tr>
-              <th scope="col" className="px-5 py-3 font-medium">Name</th>
-              <th scope="col" className="px-5 py-3 font-medium">Role</th>
-              <th scope="col" className="px-5 py-3 font-medium">Project access</th>
-              <th scope="col" className="px-5 py-3 font-medium">Status</th>
+              <th scope="col" className="px-5 py-3.5 font-black">Name</th>
+              <th scope="col" className="px-5 py-3.5 font-black">Role</th>
+              <th scope="col" className="px-5 py-3.5 font-black">Project access</th>
+              <th scope="col" className="px-5 py-3.5 font-black">Status</th>
               <th scope="col" className="px-5 py-3"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
@@ -35,7 +36,7 @@ export default async function UsersPage() {
             {users.map((user) => (
               <tr key={user.id} className={user.isActive ? undefined : "text-ink-subtle"}>
                 <td className="px-5 py-3.5">
-                  <p className="font-medium text-ink">
+                  <p className="font-bold text-ink">
                     {user.name}
                     {user.id === admin.id && <span className="font-normal text-ink-subtle"> (you)</span>}
                   </p>

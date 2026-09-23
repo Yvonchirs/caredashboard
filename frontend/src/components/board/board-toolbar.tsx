@@ -1,13 +1,17 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { addDays, formatLongDate, formatRange, type BoardView } from "@/lib/dates";
-import { buttonStyles } from "../ui";
+import { addDays, formatRange, type BoardView } from "@/lib/dates";
 import { DateJump } from "./date-jump";
 
 function href(view: BoardView, date: string) {
   return `/?view=${view}&date=${date}`;
 }
+
+const fmt = (options: Intl.DateTimeFormatOptions, iso: string) =>
+  new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...options }).format(new Date(`${iso}T00:00:00Z`));
+
+const pill = "inline-flex h-10 items-center justify-center rounded-full text-[13px] font-medium transition-colors";
 
 export function BoardToolbar({
   view,
@@ -24,28 +28,31 @@ export function BoardToolbar({
 }) {
   const step = view === "day" ? 1 : 7;
   const isCurrent = today >= from && today <= to;
-  const heading = view === "day" ? formatLongDate(date) : `Week of ${formatRange(from, to)}`;
-  const eyebrow = isCurrent ? (view === "day" ? "Today" : "This week") : view === "day" ? "Day view" : "Week view";
+  const eyebrow = isCurrent ? (view === "day" ? "Happening today" : "This week") : view === "day" ? "Activities on" : "Week of";
 
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <p className={cn("text-[13px] font-semibold tracking-wide uppercase", isCurrent ? "text-brand-dark" : "text-ink-subtle")}>
-          {eyebrow}
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-balance sm:text-[28px]">{heading}</h1>
+        <p className="eyebrow text-brand-light">{eyebrow}</p>
+        {view === "day" ? (
+          <h1 className="mt-2 font-headline text-4xl text-white sm:text-5xl lg:text-6xl">
+            {fmt({ weekday: "long" }, date)} <span className="text-white/55">{fmt({ day: "numeric", month: "long", year: "numeric" }, date)}</span>
+          </h1>
+        ) : (
+          <h1 className="mt-2 font-headline text-4xl text-white sm:text-5xl lg:text-6xl">{formatRange(from, to)}</h1>
+        )}
       </div>
 
-      <nav aria-label="Date navigation" className="flex flex-wrap items-center gap-2">
-        <div role="group" aria-label="View" className="flex rounded-lg border border-line-strong bg-surface p-0.5">
+      <nav aria-label="Date navigation" className="flex flex-wrap items-center gap-2.5">
+        <div role="group" aria-label="View" className="flex rounded-full bg-white/10 p-1">
           {(["day", "week"] as const).map((option) => (
             <Link
               key={option}
               href={href(option, date)}
               aria-current={view === option ? "page" : undefined}
               className={cn(
-                "rounded-md px-3.5 py-1.5 text-[13px] font-medium capitalize transition-colors",
-                view === option ? "bg-ink text-white" : "text-ink-muted hover:text-ink",
+                "rounded-full px-5 py-2 text-[13px] font-bold tracking-[0.06em] uppercase transition-colors",
+                view === option ? "bg-brand text-ink" : "text-white/80 hover:text-white",
               )}
             >
               {option}
@@ -53,31 +60,38 @@ export function BoardToolbar({
           ))}
         </div>
 
-        <div className="flex items-center rounded-lg border border-line-strong bg-surface">
+        <div className="flex items-center gap-1">
           <Link
             href={href(view, addDays(date, -step))}
-            className="rounded-l-lg p-2 text-ink-muted hover:bg-ink-50 hover:text-ink"
+            className={cn(pill, "size-10 border border-white/30 text-white hover:border-white hover:bg-white/10")}
             aria-label={view === "day" ? "Previous day" : "Previous week"}
           >
             <ChevronLeft className="size-4" />
           </Link>
           <Link
             href={href(view, today)}
-            className="border-x border-line px-3 py-1.5 text-[13px] font-medium hover:bg-ink-50"
-            aria-disabled={isCurrent || undefined}
+            className={cn(
+              pill,
+              "border px-4",
+              isCurrent ? "border-white/20 text-white/50" : "border-white/30 text-white hover:border-white hover:bg-white/10",
+            )}
           >
             Today
           </Link>
           <Link
             href={href(view, addDays(date, step))}
-            className="rounded-r-lg p-2 text-ink-muted hover:bg-ink-50 hover:text-ink"
+            className={cn(pill, "size-10 border border-white/30 text-white hover:border-white hover:bg-white/10")}
             aria-label={view === "day" ? "Next day" : "Next week"}
           >
             <ChevronRight className="size-4" />
           </Link>
         </div>
 
-        <DateJump view={view} date={date} className={buttonStyles({ variant: "secondary", size: "sm" })} />
+        <DateJump
+          view={view}
+          date={date}
+          className={cn(pill, "cursor-pointer gap-2 border border-white/30 px-4 text-white hover:border-white hover:bg-white/10 [&_svg]:size-4")}
+        />
       </nav>
     </div>
   );

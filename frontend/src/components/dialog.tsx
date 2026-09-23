@@ -35,7 +35,7 @@ export function Dialog({
       onClick={(event) => event.target === ref.current && onClose()}
       aria-labelledby="dialog-title"
       className={cn(
-        "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-line bg-surface p-0 text-ink",
+        "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] overflow-hidden rounded-lg border-t-4 border-brand bg-surface p-0 text-ink",
         "shadow-2xl shadow-ink/20 backdrop:bg-ink/40 backdrop:backdrop-blur-[2px]",
         size === "lg" ? "max-w-3xl" : "max-w-lg",
       )}
@@ -44,7 +44,7 @@ export function Dialog({
         <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
           <header className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
             <div>
-              <h2 id="dialog-title" className="text-base font-semibold text-balance">
+              <h2 id="dialog-title" className="font-headline text-2xl text-balance">
                 {title}
               </h2>
               {description && <p className="mt-0.5 text-sm text-ink-muted">{description}</p>}
@@ -52,7 +52,7 @@ export function Dialog({
             <button
               type="button"
               onClick={onClose}
-              className="-mr-2 rounded-md p-1.5 text-ink-subtle hover:bg-ink-50 hover:text-ink"
+              className="-mr-2 rounded-full p-2 text-ink-subtle hover:bg-ink-50 hover:text-ink"
               aria-label="Close"
             >
               <X className="size-4" />

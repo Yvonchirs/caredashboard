@@ -22,13 +22,14 @@ export default async function WorkspacePage({ searchParams }: PageProps<"/worksp
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="Workspace"
         title="My activities"
         description={`Welcome back, ${user.name.split(" ")[0]}. Activities you log appear on the public board straight away.`}
         actions={
           canLog && (
             <Link href="/workspace/new" className={buttonStyles()}>
-              <Plus aria-hidden />
               Log activity
+              <Plus aria-hidden />
             </Link>
           )
         }
@@ -42,21 +43,21 @@ export default async function WorkspacePage({ searchParams }: PageProps<"/worksp
       )}
 
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-base font-semibold">Week of {formatRange(from, to)}</h2>
-        <div className="flex items-center rounded-lg border border-line-strong bg-surface">
+        <h2 className="font-headline text-2xl">Week of {formatRange(from, to)}</h2>
+        <div className="flex items-center overflow-hidden rounded-full border-2 border-ink/80">
           <Link
             href={`/workspace?date=${addDays(from, -7)}`}
-            className="rounded-l-lg p-2 text-ink-muted hover:bg-ink-50"
+            className="p-2 text-ink hover:bg-ink-50"
             aria-label="Previous week"
           >
             <ChevronLeft className="size-4" />
           </Link>
-          <Link href="/workspace" className="border-x border-line px-3 py-1.5 text-[13px] font-medium hover:bg-ink-50">
+          <Link href="/workspace" className="border-x-2 border-ink/80 px-4 py-1.5 text-[13px] font-bold hover:bg-ink-50">
             This week
           </Link>
           <Link
             href={`/workspace?date=${addDays(from, 7)}`}
-            className="rounded-r-lg p-2 text-ink-muted hover:bg-ink-50"
+            className="p-2 text-ink hover:bg-ink-50"
             aria-label="Next week"
           >
             <ChevronRight className="size-4" />
@@ -65,24 +66,24 @@ export default async function WorkspacePage({ searchParams }: PageProps<"/worksp
       </div>
 
       {activities.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line-strong bg-surface px-6 py-12 text-center">
-          <p className="text-sm font-medium">Nothing logged for this week</p>
+        <div className="border-t-4 border-brand bg-surface px-6 py-12 text-center">
+          <p className="font-headline text-2xl">Nothing logged for this week</p>
           <p className="mt-1 text-sm text-ink-muted">Log what you&apos;re working on so colleagues can see it.</p>
         </div>
       ) : (
-        <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+        <ul className="divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
           {activities.map((activity) => (
             <li key={activity.id} className="flex gap-4 px-4 py-4 sm:px-5">
               <div className="w-12 shrink-0 text-center">
-                <p className={activity.date === today ? "text-xs font-semibold text-brand-dark" : "text-xs text-ink-subtle"}>
+                <p className={activity.date === today ? "text-xs font-black text-brand uppercase" : "text-xs font-bold text-ink-subtle uppercase"}>
                   {formatWeekday(activity.date)}
                 </p>
-                <p className="text-sm font-semibold tabular">{formatShortDate(activity.date)}</p>
+                <p className="font-headline text-lg tabular">{formatShortDate(activity.date)}</p>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge>{activity.project.code}</Badge>
-                  <p className="text-sm font-medium">{activity.title}</p>
+                  <p className="text-[15px] font-bold">{activity.title}</p>
                 </div>
                 <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-subtle">
                   {activity.startTime && (

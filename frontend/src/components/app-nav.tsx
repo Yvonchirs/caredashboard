@@ -15,7 +15,7 @@ const LINKS: { href: string; label: string; roles?: UserRole[] }[] = [
 export function AppNav({ role }: { role: UserRole }) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Main" className="-mb-px flex gap-1 overflow-x-auto">
+    <nav aria-label="Main" className="-mb-px flex gap-6 overflow-x-auto">
       {LINKS.filter((link) => !link.roles || link.roles.includes(role)).map((link) => {
         const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
         return (
@@ -24,8 +24,8 @@ export function AppNav({ role }: { role: UserRole }) {
             href={link.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "border-b-2 px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors",
-              active ? "border-brand text-ink" : "border-transparent text-ink-muted hover:text-ink",
+              "border-b-4 py-3.5 text-[13px] font-bold tracking-[0.06em] whitespace-nowrap uppercase transition-colors",
+              active ? "border-brand text-white" : "border-transparent text-white/65 hover:text-white",
             )}
           >
             {link.label}

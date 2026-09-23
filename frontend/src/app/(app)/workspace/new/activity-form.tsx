@@ -44,7 +44,7 @@ export function ActivityForm({ projects, today }: { projects: Project[]; today: 
   }
 
   return (
-    <form action={action} className="mt-8 space-y-6 rounded-xl border border-line bg-surface p-5 sm:p-7">
+    <form action={action} className="mt-8 space-y-6 border-t-4 border-navy bg-surface p-5 sm:p-8">
       {state?.error && <Alert tone="error">{state.error}</Alert>}
 
       <Field label="Project" htmlFor="projectId">
@@ -82,7 +82,7 @@ export function ActivityForm({ projects, today }: { projects: Project[]; today: 
       </Field>
 
       <fieldset>
-        <legend className="text-[13px] font-medium">
+        <legend className="text-sm font-bold">
           Photos <span className="font-normal text-ink-subtle">(optional, up to {MAX_PHOTOS})</span>
         </legend>
         <input
@@ -97,13 +97,13 @@ export function ActivityForm({ projects, today }: { projects: Project[]; today: 
         />
         <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
           {photos.map((photo, i) => (
-            <div key={photo.url} className="group relative aspect-square overflow-hidden rounded-lg border border-line bg-ink-50">
+            <div key={photo.url} className="group relative aspect-square overflow-hidden rounded-md border border-line bg-ink-50">
               {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
               <img src={photo.url} alt={`Selected photo ${i + 1}`} className="size-full object-cover" />
               <button
                 type="button"
                 onClick={() => removePhoto(photo)}
-                className="absolute top-1 right-1 rounded-md bg-ink/70 p-1 text-white hover:bg-ink"
+                className="absolute top-1 right-1 rounded-full bg-ink/75 p-1 text-white hover:bg-ink"
                 aria-label={`Remove photo ${i + 1}`}
               >
                 <X className="size-3.5" />
@@ -113,10 +113,10 @@ export function ActivityForm({ projects, today }: { projects: Project[]; today: 
           {photos.length < MAX_PHOTOS && (
             <label
               htmlFor="photos"
-              className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-line-strong text-ink-subtle transition-colors hover:border-ink-muted hover:text-ink"
+              className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed border-line-strong text-ink-subtle transition-colors hover:border-brand hover:text-brand-dark"
             >
               <ImagePlus className="size-5" aria-hidden />
-              <span className="text-xs">Add</span>
+              <span className="text-xs font-bold">Add</span>
             </label>
           )}
         </div>
@@ -128,7 +128,7 @@ export function ActivityForm({ projects, today }: { projects: Project[]; today: 
         <Link href="/workspace" className={buttonStyles({ variant: "secondary" })}>
           Cancel
         </Link>
-        <SubmitButton pendingText="Saving…">Log activity</SubmitButton>
+        <SubmitButton pendingText="Saving">Log activity</SubmitButton>
       </div>
     </form>
   );

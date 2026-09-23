@@ -100,7 +100,7 @@ function ProjectForm({
         <Button variant="secondary" onClick={onDone}>
           Cancel
         </Button>
-        <SubmitButton pendingText="Saving…">{submitLabel}</SubmitButton>
+        <SubmitButton pendingText="Saving">{submitLabel}</SubmitButton>
       </div>
     </form>
   );
