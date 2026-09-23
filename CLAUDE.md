@@ -36,6 +36,7 @@ Project rules for Claude Code. Follow these on every task.
 
 - `frontend/`: Next.js 16 app. Read `frontend/AGENTS.md`: Next 16 APIs differ from older versions, and its docs are in `frontend/node_modules/next/dist/docs/`. The frontend calls the API server-side only (`src/lib/api.ts`), and the JWT is stored in an httpOnly `care_session` cookie. `/uploads/*` is rewritten to the API.
 - `backend/`: NestJS 12 + MikroORM 7, both ESM-only. Use `.js` extensions in relative imports. Entities use `defineEntity` (no decorators). SQLite via `@mikro-orm/sqlite` (better-sqlite3; its build script is approved in `allowScripts`).
+- Work in `~/Projects/caredashboard`, not the OneDrive copy. OneDrive moves `node_modules` files to the cloud, which makes the dev servers hang.
 - Node 24 is required (`.nvmrc`). It's installed via nvm, while `/usr/local/bin/node` is an old 22.13 that breaks the Nest CLI and better-sqlite3, so make sure nvm's Node is first on PATH.
 - Swagger UI is at `http://localhost:4000/docs`.
 - `npm run db:seed` in `backend/` resets the DB. Seed logins are in `README.md`.
