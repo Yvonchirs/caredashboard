@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { MikroORM } from '@mikro-orm/sql';
+import { MikroORM } from '@mikro-orm/sqlite';
 import config from './mikro-orm.config.js';
 import { DatabaseSeeder, SEED_ADMIN, SEED_STAFF_PASSWORD } from './seeders/DatabaseSeeder.js';
 

@@ -1,4 +1,4 @@
-import { EntityManager, UniqueConstraintViolationException } from '@mikro-orm/sql';
+import { EntityManager, UniqueConstraintViolationException } from '@mikro-orm/sqlite';
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { generateTemporaryPassword, hashPassword } from '../common/password.util.js';
 import { serializeUser } from '../common/serializers.js';

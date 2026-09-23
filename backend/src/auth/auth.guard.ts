@@ -1,4 +1,4 @@
-import { EntityManager } from '@mikro-orm/sql';
+import { EntityManager } from '@mikro-orm/sqlite';
 import {
   ForbiddenException,
   Injectable,

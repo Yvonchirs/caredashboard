@@ -1,4 +1,4 @@
-import { EntityManager } from '@mikro-orm/sql';
+import { EntityManager } from '@mikro-orm/sqlite';
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { daysBetween } from '../common/date.util.js';
 import { serializeActivity } from '../common/serializers.js';

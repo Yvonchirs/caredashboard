@@ -2,11 +2,10 @@
   "name": "care-dashboard-api",
   "version": "0.1.0",
   "scripts": {
-    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "build": "npm run clean && tsc -p tsconfig.build.json",
-    "start": "node --env-file-if-exists=.env --disable-warning=ExperimentalWarning dist/main.js",
-    "dev": "npm run build && (tsc -p tsconfig.build.json --watch --preserveWatchOutput & node --env-file-if-exists=.env --disable-warning=ExperimentalWarning --watch-path=dist dist/main.js)",
-    "db:seed": "npm run build && node --env-file-if-exists=.env --disable-warning=ExperimentalWarning dist/seed.js",
+    "build": "nest build",
+    "start": "node --env-file-if-exists=.env dist/main.js",
+    "dev": "nest start --watch --exec \"node --env-file-if-exists=.env\"",
+    "db:seed": "nest build && node --env-file-if-exists=.env dist/seed.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
@@ -14,7 +13,7 @@
     "@mikro-orm/core": "^7.2.1",
     "@mikro-orm/nestjs": "^7.1.0",
     "@mikro-orm/seeder": "^7.2.1",
-    "@mikro-orm/sql": "^7.2.1",
+    "@mikro-orm/sqlite": "^7.2.1",
     "@nestjs/common": "^12.1.0",
     "@nestjs/config": "^12.0.1",
     "@nestjs/core": "^12.1.0",
@@ -31,6 +30,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@mikro-orm/cli": "^7.2.1",
+    "@nestjs/cli": "^12.0.5",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.2.0",
     "@types/node": "^22.20.4",
@@ -42,6 +42,10 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.13"
+    "node": ">=24"
+  },
+  "allowScripts": {
+    "better-sqlite3@13.0.3": true,
+    "@scarf/scarf": false
   }
 }

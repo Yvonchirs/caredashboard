@@ -1,4 +1,4 @@
-import { EntityManager } from '@mikro-orm/sql';
+import { EntityManager } from '@mikro-orm/sqlite';
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { hashPassword, verifyPassword } from '../common/password.util.js';

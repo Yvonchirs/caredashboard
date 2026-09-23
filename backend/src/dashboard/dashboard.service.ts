@@ -1,4 +1,4 @@
-import { EntityManager } from '@mikro-orm/sql';
+import { EntityManager } from '@mikro-orm/sqlite';
 import { Injectable } from '@nestjs/common';
 import { assertRange } from '../activities/activities.service.js';
 import { serializeActivity } from '../common/serializers.js';

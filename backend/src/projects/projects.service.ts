@@ -1,4 +1,4 @@
-import { EntityManager, UniqueConstraintViolationException } from '@mikro-orm/sql';
+import { EntityManager, UniqueConstraintViolationException } from '@mikro-orm/sqlite';
 import { ConflictException, Injectable } from '@nestjs/common';
 import { Project, User } from '../entities/index.js';
 import type { CreateProjectDto, UpdateProjectDto } from './projects.dto.js';

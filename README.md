@@ -5,11 +5,11 @@ A shared board showing what staff are working on, grouped by project, for a sing
 | App | Stack | Port |
 | --- | --- | --- |
 | `frontend/` | Next.js 16 (App Router), Tailwind CSS 4 | 3000 |
-| `backend/` | NestJS 12, MikroORM 7, SQLite (`node:sqlite`), Swagger | 4000 |
+| `backend/` | NestJS 12, MikroORM 7, SQLite, Swagger | 4000 |
 
 ## Getting started
 
-Requires Node.js 22.13 or newer (Node 24 LTS recommended).
+Requires Node.js 24 (`nvm use` picks it up from `.nvmrc`).
 
 ```bash
 cd backend && npm install && cp .env.example .env && npm run db:seed

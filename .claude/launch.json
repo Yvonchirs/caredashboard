@@ -3,14 +3,16 @@
   "configurations": [
     {
       "name": "web",
-      "runtimeExecutable": "npm",
+      "runtimeExecutable": "/Users/carauser/.nvm/versions/node/v24.21.0/bin/npm",
       "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "env": { "PATH": "/Users/carauser/.nvm/versions/node/v24.21.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin" },
       "port": 3000
     },
     {
       "name": "api",
-      "runtimeExecutable": "npm",
+      "runtimeExecutable": "/Users/carauser/.nvm/versions/node/v24.21.0/bin/npm",
       "runtimeArgs": ["--prefix", "backend", "run", "dev"],
+      "env": { "PATH": "/Users/carauser/.nvm/versions/node/v24.21.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin" },
       "port": 4000
     }
   ]
