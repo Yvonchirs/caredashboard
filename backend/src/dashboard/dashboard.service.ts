@@ -14,7 +14,7 @@ export class DashboardService {
     const activities = await this.em.find(
       Activity,
       { date: { $gte: from, $lte: to }, project: { isActive: true } },
-      { populate: ['project', 'author', 'photos'], orderBy: { date: 'asc', startTime: 'asc', id: 'asc' } },
+      { populate: ['project', 'author', 'collaborators', 'photos'], orderBy: { date: 'asc', startTime: 'asc', id: 'asc' } },
     );
 
     const byProject = new Map<number, DashboardProjectDto>();

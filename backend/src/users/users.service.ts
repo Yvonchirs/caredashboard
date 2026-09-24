@@ -1,7 +1,7 @@
 import { EntityManager, UniqueConstraintViolationException } from '@mikro-orm/sqlite';
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { generateTemporaryPassword, hashPassword } from '../common/password.util.js';
-import { serializeUser } from '../common/serializers.js';
+import { serializeStaffRef, serializeUser } from '../common/serializers.js';
 import { Project, User } from '../entities/index.js';
 import type { CreateUserDto, UpdateUserDto } from './users.dto.js';
 
@@ -12,6 +12,11 @@ export class UsersService {
   async findAll() {
     const users = await this.em.findAll(User, { populate: ['projects'], orderBy: { name: 'asc' } });
     return users.map(serializeUser);
+  }
+
+  async directory() {
+    const users = await this.em.find(User, { isActive: true }, { orderBy: { name: 'asc' } });
+    return users.map(serializeStaffRef);
   }
 
   async create(dto: CreateUserDto) {

@@ -1,10 +1,10 @@
 import { Body, Controller, Get, HttpCode, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard.js';
 import { CurrentUser } from '../common/current-user.decorator.js';
 import { Roles } from '../common/roles.decorator.js';
 import type { User } from '../entities/index.js';
-import { CreateUserDto, UpdateUserDto, UserDto, UserWithPasswordDto } from './users.dto.js';
+import { CreateUserDto, StaffRefDto, UpdateUserDto, UserDto, UserWithPasswordDto } from './users.dto.js';
 import { UsersService } from './users.service.js';
 
 @ApiTags('Users (admin)')
@@ -20,6 +20,14 @@ export class UsersController {
   @ApiOkResponse({ type: [UserDto] })
   findAll() {
     return this.users.findAll();
+  }
+
+  @Get('directory')
+  @Roles(['admin', 'staff'])
+  @ApiOperation({ summary: 'Minimal list of active staff, for tagging colleagues on an activity' })
+  @ApiOkResponse({ type: [StaffRefDto] })
+  directory() {
+    return this.users.directory();
   }
 
   @Post()

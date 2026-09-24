@@ -2,6 +2,7 @@ import { Camera, ChevronLeft, ChevronRight, Clock, MapPin, Plus } from "lucide-r
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Alert, Badge, buttonStyles, PageHeader } from "@/components/ui";
+import { StatusBadge } from "@/components/status-badge";
 import { api } from "@/lib/api";
 import { addDays, formatRange, formatShortDate, formatWeekday, isIsoDate, rangeFor, todayIso } from "@/lib/dates";
 import { requireUser } from "@/lib/session";
@@ -81,9 +82,12 @@ export default async function WorkspacePage({ searchParams }: PageProps<"/worksp
                 <p className="font-headline text-lg tabular">{formatShortDate(activity.date)}</p>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge>{activity.project.code}</Badge>
-                  <p className="text-[15px] font-bold">{activity.title}</p>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge>{activity.project.code}</Badge>
+                    <p className="text-[15px] font-bold">{activity.title}</p>
+                  </div>
+                  <StatusBadge status={activity.status} />
                 </div>
                 <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-subtle">
                   {activity.startTime && (
@@ -102,9 +106,16 @@ export default async function WorkspacePage({ searchParams }: PageProps<"/worksp
                       {activity.photos.length} {activity.photos.length === 1 ? "photo" : "photos"}
                     </span>
                   )}
+                  {activity.author.id === user.id
+                    ? activity.collaborators.length > 0 && (
+                        <span>With {activity.collaborators.map((person) => person.name).join(", ")}</span>
+                      )
+                    : <span>Logged by {activity.author.name}</span>}
                 </p>
               </div>
-              <DeleteActivityButton id={activity.id} title={activity.title} />
+              {(activity.author.id === user.id || user.role === "admin") && (
+                <DeleteActivityButton id={activity.id} title={activity.title} />
+              )}
             </li>
           ))}
         </ul>

@@ -6,15 +6,31 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
 import { Alert, buttonStyles, Field, Input, Select, Textarea } from "@/components/ui";
 import { createActivity } from "@/lib/actions";
-import type { Project } from "@/lib/types";
+import type { ActivityStatus, Project, StaffRef } from "@/lib/types";
 
 const MAX_PHOTOS = 6;
 const MAX_BYTES = 5 * 1024 * 1024;
 
-export function ActivityForm({ projects, today }: { projects: Project[]; today: string }) {
+function statusForDate(date: string, today: string): ActivityStatus {
+  if (date === today) return "live";
+  return date < today ? "completed" : "pending";
+}
+
+export function ActivityForm({
+  projects,
+  colleagues,
+  today,
+}: {
+  projects: Project[];
+  colleagues: StaffRef[];
+  today: string;
+}) {
   const [state, action] = useActionState(createActivity, undefined);
   const [photos, setPhotos] = useState<{ file: File; url: string }[]>([]);
   const [photoError, setPhotoError] = useState<string>();
+  const [date, setDate] = useState(today);
+  const [status, setStatus] = useState<ActivityStatus>(() => statusForDate(today, today));
+  const statusTouched = useRef(false);
   const input = useRef<HTMLInputElement>(null);
   const latest = useRef(photos);
 
@@ -43,6 +59,11 @@ export function ActivityForm({ projects, today }: { projects: Project[]; today: 
     setPhotos((current) => [...current, ...accepted.map((file) => ({ file, url: URL.createObjectURL(file) }))]);
   }
 
+  function handleDateChange(value: string) {
+    setDate(value);
+    if (!statusTouched.current) setStatus(statusForDate(value, today));
+  }
+
   return (
     <form action={action} className="mt-8 space-y-6 border-t-4 border-navy bg-surface p-5 sm:p-8">
       {state?.error && <Alert tone="error">{state.error}</Alert>}
@@ -66,12 +87,28 @@ export function ActivityForm({ projects, today }: { projects: Project[]; today: 
 
       <div className="grid gap-6 sm:grid-cols-2">
         <Field label="Date" htmlFor="date">
-          <Input id="date" name="date" type="date" required defaultValue={today} />
+          <Input id="date" name="date" type="date" required value={date} onChange={(event) => handleDateChange(event.target.value)} />
         </Field>
         <Field label="Start time" htmlFor="startTime" optional>
           <Input id="startTime" name="startTime" type="time" />
         </Field>
       </div>
+
+      <Field label="Status" htmlFor="status" hint="Set from the date by default — change it if needed">
+        <Select
+          id="status"
+          name="status"
+          value={status}
+          onChange={(event) => {
+            statusTouched.current = true;
+            setStatus(event.target.value as ActivityStatus);
+          }}
+        >
+          <option value="live">Live — happening now</option>
+          <option value="pending">Pending — planned</option>
+          <option value="completed">Completed</option>
+        </Select>
+      </Field>
 
       <Field label="Location" htmlFor="location" hint="Village, sector or district">
         <Input id="location" name="location" required minLength={2} maxLength={160} placeholder="e.g. Kitabi Sector, Nyamagabe" />
@@ -80,6 +117,31 @@ export function ActivityForm({ projects, today }: { projects: Project[]; today: 
       <Field label="Details" htmlFor="description" optional>
         <Textarea id="description" name="description" maxLength={2000} placeholder="Who is involved, objectives, expected outcomes…" />
       </Field>
+
+      <fieldset>
+        <legend className="text-sm font-bold">
+          Other staff involved <span className="font-normal text-ink-subtle">(optional)</span>
+        </legend>
+        <p className="mt-0.5 text-xs text-ink-subtle">Tag colleagues who are also working on this activity with you.</p>
+        {colleagues.length > 0 ? (
+          <div className="mt-3 grid max-h-56 gap-1 overflow-y-auto rounded-md border border-line p-1.5 sm:grid-cols-2">
+            {colleagues.map((person) => (
+              <label
+                key={person.id}
+                className="flex cursor-pointer items-start gap-2.5 rounded-md px-2.5 py-2 text-sm hover:bg-ink-50"
+              >
+                <input type="checkbox" name="collaboratorIds" value={person.id} className="mt-0.5 size-4 accent-brand" />
+                <span className="min-w-0">
+                  <span className="block leading-snug font-medium">{person.name}</span>
+                  {person.jobTitle && <span className="block text-xs text-ink-subtle">{person.jobTitle}</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-ink-subtle">No other staff accounts yet.</p>
+        )}
+      </fieldset>
 
       <fieldset>
         <legend className="text-sm font-bold">

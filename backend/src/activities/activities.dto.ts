@@ -1,14 +1,9 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { ArrayUnique, IsArray, IsIn, IsInt, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { ISO_DATE } from '../common/date.util.js';
-import { ProjectRefDto } from '../users/users.dto.js';
-
-export class ActivityAuthorDto {
-  @ApiProperty() id: number;
-  @ApiProperty() name: string;
-  @ApiProperty({ type: String, nullable: true }) jobTitle: string | null;
-}
+import { ACTIVITY_STATUSES, type ActivityStatus } from '../entities/index.js';
+import { ProjectRefDto, StaffRefDto } from '../users/users.dto.js';
 
 export class PhotoDto {
   @ApiProperty() id: number;
@@ -23,8 +18,12 @@ export class ActivityDto {
   @ApiProperty({ example: '2026-09-23' }) date: string;
   @ApiProperty({ type: String, nullable: true, example: '09:30' }) startTime: string | null;
   @ApiProperty() location: string;
+  @ApiProperty({ enum: ACTIVITY_STATUSES }) status: ActivityStatus;
   @ApiProperty({ type: ProjectRefDto }) project: ProjectRefDto;
-  @ApiProperty({ type: ActivityAuthorDto }) author: ActivityAuthorDto;
+  @ApiProperty({ type: StaffRefDto, description: 'The staff member who logged the activity' })
+  author: StaffRefDto;
+  @ApiProperty({ type: [StaffRefDto], description: 'Additional staff also working on this activity' })
+  collaborators: StaffRefDto[];
   @ApiProperty({ type: [PhotoDto] }) photos: PhotoDto[];
   @ApiProperty() createdAt: Date;
 }
@@ -57,10 +56,26 @@ export class CreateActivityDto {
   @MaxLength(160)
   location: string;
 
+  @ApiPropertyOptional({ enum: ACTIVITY_STATUSES, default: 'pending' })
+  @IsOptional()
+  @IsIn(ACTIVITY_STATUSES)
+  status?: ActivityStatus;
+
   @ApiProperty()
   @Type(() => Number)
   @IsInt()
   projectId: number;
+
+  @ApiPropertyOptional({
+    type: [Number],
+    description: 'Other staff working on this activity alongside the person logging it',
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @Type(() => Number)
+  @IsInt({ each: true })
+  collaboratorIds?: number[];
 }
 
 export class CreateActivityWithPhotosDto extends CreateActivityDto {

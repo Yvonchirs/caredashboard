@@ -55,10 +55,11 @@ export async function changePassword(_state: FormState, formData: FormData): Pro
 
 export async function createActivity(_state: FormState, formData: FormData): Promise<FormState> {
   const payload = new FormData();
-  for (const key of ["title", "description", "date", "startTime", "location", "projectId"]) {
+  for (const key of ["title", "description", "date", "startTime", "location", "projectId", "status"]) {
     const value = text(formData, key);
     if (value) payload.set(key, value);
   }
+  for (const id of ids(formData, "collaboratorIds")) payload.append("collaboratorIds[]", String(id));
   for (const photo of formData.getAll("photos")) {
     if (photo instanceof File && photo.size > 0) payload.append("photos", photo);
   }

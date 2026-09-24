@@ -1,4 +1,5 @@
 export type UserRole = "admin" | "staff";
+export type ActivityStatus = "pending" | "live" | "completed";
 
 export interface ProjectRef {
   id: number;
@@ -18,6 +19,12 @@ export interface User {
   createdAt: string;
 }
 
+export interface StaffRef {
+  id: number;
+  name: string;
+  jobTitle: string | null;
+}
+
 export interface Project extends ProjectRef {
   description: string | null;
   location: string | null;
@@ -33,8 +40,10 @@ export interface Activity {
   date: string;
   startTime: string | null;
   location: string;
+  status: ActivityStatus;
   project: ProjectRef;
-  author: { id: number; name: string; jobTitle: string | null };
+  author: StaffRef;
+  collaborators: StaffRef[];
   photos: { id: number; url: string }[];
   createdAt: string;
 }

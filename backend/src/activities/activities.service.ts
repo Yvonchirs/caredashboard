@@ -6,6 +6,8 @@ import { Activity, Photo, Project, User } from '../entities/index.js';
 import type { CreateActivityDto, UpdateActivityDto } from './activities.dto.js';
 import { removeUploads } from './upload.config.js';
 
+const ACTIVITY_POPULATE = ['project', 'author', 'collaborators', 'photos'] as const;
+
 @Injectable()
 export class ActivitiesService {
   constructor(private readonly em: EntityManager) {}
@@ -14,8 +16,8 @@ export class ActivitiesService {
     assertRange(from, to);
     const activities = await this.em.find(
       Activity,
-      { author: user, date: { $gte: from, $lte: to } },
-      { populate: ['project', 'author', 'photos'], orderBy: { date: 'desc', startTime: 'asc' } },
+      { $or: [{ author: user }, { collaborators: user }], date: { $gte: from, $lte: to } },
+      { populate: ACTIVITY_POPULATE, orderBy: { date: 'desc', startTime: 'asc' } },
     );
     return activities.map(serializeActivity);
   }
@@ -23,18 +25,21 @@ export class ActivitiesService {
   async create(user: User, dto: CreateActivityDto, files: Express.Multer.File[]) {
     try {
       const project = await this.resolveProject(user, dto.projectId);
+      const collaborators = await this.resolveCollaborators(dto.collaboratorIds, user.id);
       const activity = this.em.create(Activity, {
         title: dto.title.trim(),
         description: dto.description?.trim() || null,
         date: dto.date,
         startTime: dto.startTime || null,
         location: dto.location.trim(),
+        status: dto.status ?? 'pending',
         project,
         author: user,
+        collaborators,
       });
       for (const file of files) this.em.create(Photo, { filename: file.filename, activity });
       await this.em.flush();
-      await this.em.populate(activity, ['photos']);
+      await this.em.populate(activity, ['photos', 'collaborators']);
       return serializeActivity(activity);
     } catch (error) {
       await removeUploads(files.map((file) => file.filename));
@@ -50,6 +55,10 @@ export class ActivitiesService {
     if (dto.date !== undefined) activity.date = dto.date;
     if (dto.startTime !== undefined) activity.startTime = dto.startTime || null;
     if (dto.location !== undefined) activity.location = dto.location.trim();
+    if (dto.status !== undefined) activity.status = dto.status;
+    if (dto.collaboratorIds !== undefined) {
+      activity.collaborators.set(await this.resolveCollaborators(dto.collaboratorIds, activity.author.id));
+    }
     await this.em.flush();
     return serializeActivity(activity);
   }
@@ -62,7 +71,7 @@ export class ActivitiesService {
   }
 
   private async findEditable(user: User, id: number) {
-    const activity = await this.em.findOneOrFail(Activity, id, { populate: ['project', 'author', 'photos'] });
+    const activity = await this.em.findOneOrFail(Activity, id, { populate: ACTIVITY_POPULATE });
     if (user.role !== 'admin' && activity.author.id !== user.id) {
       throw new ForbiddenException('You can only change your own activities');
     }
@@ -75,6 +84,15 @@ export class ActivitiesService {
     const allowed = user.role === 'admin' || user.projects.getItems().some((p) => p.id === project.id);
     if (!allowed) throw new ForbiddenException('You are not assigned to this project');
     return project;
+  }
+
+  private async resolveCollaborators(ids: number[] | undefined, authorId: number) {
+    if (!ids?.length) return [];
+    const uniqueIds = [...new Set(ids)].filter((id) => id !== authorId);
+    if (uniqueIds.length === 0) return [];
+    const users = await this.em.find(User, { id: { $in: uniqueIds }, isActive: true });
+    if (users.length !== uniqueIds.length) throw new BadRequestException('One or more staff members were not found');
+    return users;
   }
 }
 

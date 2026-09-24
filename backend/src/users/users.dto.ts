@@ -8,6 +8,12 @@ export class ProjectRefDto {
   @ApiProperty() code: string;
 }
 
+export class StaffRefDto {
+  @ApiProperty() id: number;
+  @ApiProperty() name: string;
+  @ApiProperty({ type: String, nullable: true }) jobTitle: string | null;
+}
+
 export class UserDto {
   @ApiProperty() id: number;
   @ApiProperty() name: string;
