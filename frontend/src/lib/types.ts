@@ -41,7 +41,6 @@ export interface Activity {
   startTime: string | null;
   location: string;
   status: ActivityStatus;
-  hasStarted: boolean;
   project: ProjectRef;
   author: StaffRef;
   collaborators: StaffRef[];

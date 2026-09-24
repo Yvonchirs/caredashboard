@@ -55,7 +55,7 @@ export async function changePassword(_state: FormState, formData: FormData): Pro
 
 export async function createActivity(_state: FormState, formData: FormData): Promise<FormState> {
   const payload = new FormData();
-  for (const key of ["title", "description", "date", "startTime", "location", "projectId", "status"]) {
+  for (const key of ["title", "description", "date", "startTime", "location", "projectId"]) {
     const value = text(formData, key);
     if (value) payload.set(key, value);
   }
@@ -81,7 +81,6 @@ export async function updateActivity(id: number, _state: FormState, formData: Fo
     date: text(formData, "date"),
     startTime: text(formData, "startTime") || null,
     location: text(formData, "location"),
-    status: text(formData, "status"),
     collaboratorIds: ids(formData, "collaboratorIds"),
   };
   try {

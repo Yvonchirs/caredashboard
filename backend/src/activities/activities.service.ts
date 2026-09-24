@@ -1,6 +1,6 @@
 import { EntityManager } from '@mikro-orm/sqlite';
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { daysBetween, hasActivityStarted } from '../common/date.util.js';
+import { computeActivityStatus, daysBetween } from '../common/date.util.js';
 import { serializeActivity } from '../common/serializers.js';
 import { Activity, Photo, Project, User } from '../entities/index.js';
 import type { CreateActivityDto, UpdateActivityDto } from './activities.dto.js';
@@ -32,7 +32,6 @@ export class ActivitiesService {
         date: dto.date,
         startTime: dto.startTime || null,
         location: dto.location.trim(),
-        status: dto.status ?? 'pending',
         project,
         author: user,
         collaborators,
@@ -49,7 +48,7 @@ export class ActivitiesService {
 
   async update(user: User, id: number, dto: UpdateActivityDto) {
     const activity = await this.findEditable(user, id);
-    if (user.role !== 'admin' && hasActivityStarted(activity.date, activity.startTime ?? null)) {
+    if (user.role !== 'admin' && computeActivityStatus(activity.date, activity.startTime ?? null) !== 'pending') {
       throw new ForbiddenException('This activity has already started and can no longer be edited');
     }
     if (dto.projectId !== undefined) activity.project = await this.resolveProject(user, dto.projectId);
@@ -58,7 +57,6 @@ export class ActivitiesService {
     if (dto.date !== undefined) activity.date = dto.date;
     if (dto.startTime !== undefined) activity.startTime = dto.startTime || null;
     if (dto.location !== undefined) activity.location = dto.location.trim();
-    if (dto.status !== undefined) activity.status = dto.status;
     if (dto.collaboratorIds !== undefined) {
       activity.collaborators.set(await this.resolveCollaborators(dto.collaboratorIds, activity.author.id));
     }

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayUnique, IsArray, IsIn, IsInt, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { ArrayUnique, IsArray, IsInt, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { ISO_DATE } from '../common/date.util.js';
 import { ACTIVITY_STATUSES, type ActivityStatus } from '../entities/index.js';
 import { ProjectRefDto, StaffRefDto } from '../users/users.dto.js';
@@ -18,9 +18,8 @@ export class ActivityDto {
   @ApiProperty({ example: '2026-09-23' }) date: string;
   @ApiProperty({ type: String, nullable: true, example: '09:30' }) startTime: string | null;
   @ApiProperty() location: string;
-  @ApiProperty({ enum: ACTIVITY_STATUSES }) status: ActivityStatus;
-  @ApiProperty({ description: 'Whether the scheduled date/time has arrived — editing is blocked once true' })
-  hasStarted: boolean;
+  @ApiProperty({ enum: ACTIVITY_STATUSES, description: 'Computed from the date/time — cannot be set directly' })
+  status: ActivityStatus;
   @ApiProperty({ type: ProjectRefDto }) project: ProjectRefDto;
   @ApiProperty({ type: StaffRefDto, description: 'The staff member who logged the activity' })
   author: StaffRefDto;
@@ -57,11 +56,6 @@ export class CreateActivityDto {
   @MinLength(2)
   @MaxLength(160)
   location: string;
-
-  @ApiPropertyOptional({ enum: ACTIVITY_STATUSES, default: 'pending' })
-  @IsOptional()
-  @IsIn(ACTIVITY_STATUSES)
-  status?: ActivityStatus;
 
   @ApiProperty()
   @Type(() => Number)

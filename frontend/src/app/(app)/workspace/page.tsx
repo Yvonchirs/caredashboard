@@ -122,9 +122,8 @@ export default async function WorkspacePage({ searchParams }: PageProps<"/worksp
                 activity={activity}
                 projects={projects}
                 colleagues={colleagues}
-                canEdit={(activity.author.id === user.id || user.role === "admin") && (!activity.hasStarted || user.role === "admin")}
+                canEdit={(activity.author.id === user.id || user.role === "admin") && (activity.status === "pending" || user.role === "admin")}
                 canDelete={activity.author.id === user.id || user.role === "admin"}
-                today={today}
               />
             </li>
           ))}

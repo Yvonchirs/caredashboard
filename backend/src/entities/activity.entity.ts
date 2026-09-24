@@ -5,6 +5,7 @@ import { User } from './user.entity.js';
 
 export const ACTIVITY_STATUSES = ['pending', 'live', 'completed'] as const;
 export type ActivityStatus = (typeof ACTIVITY_STATUSES)[number];
+// Status is not stored: it is derived from date/startTime, see common/date.util.ts#computeActivityStatus.
 
 export const ActivitySchema = defineEntity({
   name: 'Activity',
@@ -16,7 +17,6 @@ export const ActivitySchema = defineEntity({
     date: p.string().length(10).index(),
     startTime: p.string().length(5).nullable(),
     location: p.string(),
-    status: p.enum(ACTIVITY_STATUSES).default('pending'),
     project: () => p.manyToOne(Project).deleteRule('cascade'),
     author: () => p.manyToOne(User).deleteRule('cascade'),
     /** Extra staff tagged as also working on this activity, besides the author. */

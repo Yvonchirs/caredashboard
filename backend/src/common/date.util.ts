@@ -33,10 +33,19 @@ export function nowInAppTz(now = new Date()): { date: string; time: string } {
   return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
 }
 
-/** An activity counts as started once its date (and time, if set) has arrived. */
-export function hasActivityStarted(date: string, startTime: string | null, now = new Date()): boolean {
+/**
+ * Derives an activity's status from its date and optional start time — never stored, always computed.
+ * Before the date: pending. On the date, from the start time (or from the start of the day when no
+ * start time is set) until midnight: live. After the date: completed.
+ */
+export function computeActivityStatus(
+  date: string,
+  startTime: string | null,
+  now = new Date(),
+): 'pending' | 'live' | 'completed' {
   const { date: today, time: nowTime } = nowInAppTz(now);
-  if (date !== today) return date < today;
-  if (!startTime) return true;
-  return startTime <= nowTime;
+  if (date < today) return 'completed';
+  if (date > today) return 'pending';
+  if (!startTime || startTime <= nowTime) return 'live';
+  return 'pending';
 }

@@ -1,17 +1,12 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
-import { useActionState, useRef, useState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { Dialog } from "@/components/dialog";
 import { SubmitButton } from "@/components/submit-button";
 import { Alert, Button, Field, Input, Select, Textarea } from "@/components/ui";
 import { deleteActivity, updateActivity } from "@/lib/actions";
-import type { Activity, ActivityStatus, FormState, Project, StaffRef } from "@/lib/types";
-
-function statusForDate(date: string, today: string): ActivityStatus {
-  if (date === today) return "live";
-  return date < today ? "completed" : "pending";
-}
+import type { Activity, FormState, Project, StaffRef } from "@/lib/types";
 
 export function ActivityActions({
   activity,
@@ -19,14 +14,12 @@ export function ActivityActions({
   colleagues,
   canEdit,
   canDelete,
-  today,
 }: {
   activity: Activity;
   projects: Project[];
   colleagues: StaffRef[];
   canEdit: boolean;
   canDelete: boolean;
-  today: string;
 }) {
   const [editing, setEditing] = useState(false);
   const [deleting, startDelete] = useTransition();
@@ -62,13 +55,7 @@ export function ActivityActions({
           title="Edit activity"
           description={`${activity.project.code} · ${activity.project.name}`}
         >
-          <EditActivityForm
-            activity={activity}
-            projects={projects}
-            colleagues={colleagues}
-            today={today}
-            onDone={() => setEditing(false)}
-          />
+          <EditActivityForm activity={activity} projects={projects} colleagues={colleagues} onDone={() => setEditing(false)} />
         </Dialog>
       )}
     </div>
@@ -79,13 +66,11 @@ function EditActivityForm({
   activity,
   projects,
   colleagues,
-  today,
   onDone,
 }: {
   activity: Activity;
   projects: Project[];
   colleagues: StaffRef[];
-  today: string;
   onDone: () => void;
 }) {
   const [state, action] = useActionState(async (prev: FormState, formData: FormData) => {
@@ -93,9 +78,6 @@ function EditActivityForm({
     if (result?.success) onDone();
     return result;
   }, undefined);
-  const [date, setDate] = useState(activity.date);
-  const [status, setStatus] = useState<ActivityStatus>(activity.status);
-  const statusTouched = useRef(false);
   const assigned = new Set(activity.collaborators.map((person) => person.id));
 
   return (
@@ -118,38 +100,16 @@ function EditActivityForm({
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Date" htmlFor="edit-date">
-          <Input
-            id="edit-date"
-            name="date"
-            type="date"
-            required
-            value={date}
-            onChange={(event) => {
-              setDate(event.target.value);
-              if (!statusTouched.current) setStatus(statusForDate(event.target.value, today));
-            }}
-          />
+          <Input id="edit-date" name="date" type="date" required defaultValue={activity.date} />
         </Field>
         <Field label="Start time" htmlFor="edit-startTime" optional>
           <Input id="edit-startTime" name="startTime" type="time" defaultValue={activity.startTime ?? ""} />
         </Field>
       </div>
-
-      <Field label="Status" htmlFor="edit-status" hint="Set from the date by default — change it if needed">
-        <Select
-          id="edit-status"
-          name="status"
-          value={status}
-          onChange={(event) => {
-            statusTouched.current = true;
-            setStatus(event.target.value as ActivityStatus);
-          }}
-        >
-          <option value="live">Live — happening now</option>
-          <option value="pending">Pending — planned</option>
-          <option value="completed">Completed</option>
-        </Select>
-      </Field>
+      <p className="-mt-3 text-xs text-ink-subtle">
+        Status is set automatically: pending beforehand, live from the date and time you give until the end of that day, then
+        completed.
+      </p>
 
       <Field label="Location" htmlFor="edit-location">
         <Input id="edit-location" name="location" required minLength={2} maxLength={160} defaultValue={activity.location} />

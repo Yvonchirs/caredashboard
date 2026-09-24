@@ -6,15 +6,10 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
 import { Alert, buttonStyles, Field, Input, Select, Textarea } from "@/components/ui";
 import { createActivity } from "@/lib/actions";
-import type { ActivityStatus, Project, StaffRef } from "@/lib/types";
+import type { Project, StaffRef } from "@/lib/types";
 
 const MAX_PHOTOS = 6;
 const MAX_BYTES = 5 * 1024 * 1024;
-
-function statusForDate(date: string, today: string): ActivityStatus {
-  if (date === today) return "live";
-  return date < today ? "completed" : "pending";
-}
 
 export function ActivityForm({
   projects,
@@ -28,9 +23,6 @@ export function ActivityForm({
   const [state, action] = useActionState(createActivity, undefined);
   const [photos, setPhotos] = useState<{ file: File; url: string }[]>([]);
   const [photoError, setPhotoError] = useState<string>();
-  const [date, setDate] = useState(today);
-  const [status, setStatus] = useState<ActivityStatus>(() => statusForDate(today, today));
-  const statusTouched = useRef(false);
   const input = useRef<HTMLInputElement>(null);
   const latest = useRef(photos);
 
@@ -59,11 +51,6 @@ export function ActivityForm({
     setPhotos((current) => [...current, ...accepted.map((file) => ({ file, url: URL.createObjectURL(file) }))]);
   }
 
-  function handleDateChange(value: string) {
-    setDate(value);
-    if (!statusTouched.current) setStatus(statusForDate(value, today));
-  }
-
   return (
     <form action={action} className="mt-8 space-y-6 border-t-4 border-navy bg-surface p-5 sm:p-8">
       {state?.error && <Alert tone="error">{state.error}</Alert>}
@@ -87,28 +74,16 @@ export function ActivityForm({
 
       <div className="grid gap-6 sm:grid-cols-2">
         <Field label="Date" htmlFor="date">
-          <Input id="date" name="date" type="date" required value={date} onChange={(event) => handleDateChange(event.target.value)} />
+          <Input id="date" name="date" type="date" required defaultValue={today} />
         </Field>
         <Field label="Start time" htmlFor="startTime" optional>
           <Input id="startTime" name="startTime" type="time" />
         </Field>
       </div>
-
-      <Field label="Status" htmlFor="status" hint="Set from the date by default — change it if needed">
-        <Select
-          id="status"
-          name="status"
-          value={status}
-          onChange={(event) => {
-            statusTouched.current = true;
-            setStatus(event.target.value as ActivityStatus);
-          }}
-        >
-          <option value="live">Live — happening now</option>
-          <option value="pending">Pending — planned</option>
-          <option value="completed">Completed</option>
-        </Select>
-      </Field>
+      <p className="-mt-3 text-xs text-ink-subtle">
+        Status is set automatically: pending beforehand, live from the date and time you give until the end of that day, then
+        completed.
+      </p>
 
       <Field label="Location" htmlFor="location" hint="Village, sector or district">
         <Input id="location" name="location" required minLength={2} maxLength={160} placeholder="e.g. Kitabi Sector, Nyamagabe" />

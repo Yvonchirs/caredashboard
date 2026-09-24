@@ -1,4 +1,4 @@
-import { hasActivityStarted } from './date.util.js';
+import { computeActivityStatus } from './date.util.js';
 import type { Activity, Project, User } from '../entities/index.js';
 
 export function serializeUser(user: User) {
@@ -33,8 +33,7 @@ export function serializeActivity(activity: Activity) {
     date: activity.date,
     startTime: activity.startTime ?? null,
     location: activity.location,
-    status: activity.status,
-    hasStarted: hasActivityStarted(activity.date, activity.startTime ?? null),
+    status: computeActivityStatus(activity.date, activity.startTime ?? null),
     project: serializeProjectRef(activity.project),
     author: serializeStaffRef(activity.author),
     collaborators: activity.collaborators.isInitialized()
