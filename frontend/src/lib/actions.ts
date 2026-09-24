@@ -73,6 +73,26 @@ export async function createActivity(_state: FormState, formData: FormData): Pro
   redirect(`/workspace?date=${text(formData, "date")}&created=1`);
 }
 
+export async function updateActivity(id: number, _state: FormState, formData: FormData): Promise<FormState> {
+  const body = {
+    projectId: Number(text(formData, "projectId")),
+    title: text(formData, "title"),
+    description: text(formData, "description") || null,
+    date: text(formData, "date"),
+    startTime: text(formData, "startTime") || null,
+    location: text(formData, "location"),
+    status: text(formData, "status"),
+    collaboratorIds: ids(formData, "collaboratorIds"),
+  };
+  try {
+    await api(`/activities/${id}`, { method: "PATCH", body });
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
+  revalidatePath("/", "layout");
+  return { success: "Activity updated." };
+}
+
 export async function deleteActivity(id: number) {
   await api(`/activities/${id}`, { method: "DELETE" });
   revalidatePath("/", "layout");

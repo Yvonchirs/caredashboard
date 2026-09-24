@@ -19,6 +19,8 @@ export class ActivityDto {
   @ApiProperty({ type: String, nullable: true, example: '09:30' }) startTime: string | null;
   @ApiProperty() location: string;
   @ApiProperty({ enum: ACTIVITY_STATUSES }) status: ActivityStatus;
+  @ApiProperty({ description: 'Whether the scheduled date/time has arrived — editing is blocked once true' })
+  hasStarted: boolean;
   @ApiProperty({ type: ProjectRefDto }) project: ProjectRefDto;
   @ApiProperty({ type: StaffRefDto, description: 'The staff member who logged the activity' })
   author: StaffRefDto;

@@ -6,8 +6,8 @@ import { StatusBadge } from "@/components/status-badge";
 import { api } from "@/lib/api";
 import { addDays, formatRange, formatShortDate, formatWeekday, isIsoDate, rangeFor, todayIso } from "@/lib/dates";
 import { requireUser } from "@/lib/session";
-import type { Activity } from "@/lib/types";
-import { DeleteActivityButton } from "./delete-activity-button";
+import type { Activity, Project, StaffRef } from "@/lib/types";
+import { ActivityActions } from "./activity-actions";
 
 export const metadata: Metadata = { title: "My activities" };
 
@@ -17,7 +17,12 @@ export default async function WorkspacePage({ searchParams }: PageProps<"/worksp
   const today = todayIso();
   const date = isIsoDate(params.date) ? params.date : today;
   const { from, to } = rangeFor("week", date);
-  const activities = await api<Activity[]>(`/activities/mine?from=${from}&to=${to}`);
+  const [activities, projects, directory] = await Promise.all([
+    api<Activity[]>(`/activities/mine?from=${from}&to=${to}`),
+    api<Project[]>("/projects/mine"),
+    api<StaffRef[]>("/users/directory"),
+  ]);
+  const colleagues = directory.filter((person) => person.id !== user.id);
   const canLog = user.role === "admin" || user.projects.length > 0;
 
   return (
@@ -113,9 +118,14 @@ export default async function WorkspacePage({ searchParams }: PageProps<"/worksp
                     : <span>Logged by {activity.author.name}</span>}
                 </p>
               </div>
-              {(activity.author.id === user.id || user.role === "admin") && (
-                <DeleteActivityButton id={activity.id} title={activity.title} />
-              )}
+              <ActivityActions
+                activity={activity}
+                projects={projects}
+                colleagues={colleagues}
+                canEdit={(activity.author.id === user.id || user.role === "admin") && (!activity.hasStarted || user.role === "admin")}
+                canDelete={activity.author.id === user.id || user.role === "admin"}
+                today={today}
+              />
             </li>
           ))}
         </ul>

@@ -1,6 +1,6 @@
 import { EntityManager } from '@mikro-orm/sqlite';
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { daysBetween } from '../common/date.util.js';
+import { daysBetween, hasActivityStarted } from '../common/date.util.js';
 import { serializeActivity } from '../common/serializers.js';
 import { Activity, Photo, Project, User } from '../entities/index.js';
 import type { CreateActivityDto, UpdateActivityDto } from './activities.dto.js';
@@ -49,6 +49,9 @@ export class ActivitiesService {
 
   async update(user: User, id: number, dto: UpdateActivityDto) {
     const activity = await this.findEditable(user, id);
+    if (user.role !== 'admin' && hasActivityStarted(activity.date, activity.startTime ?? null)) {
+      throw new ForbiddenException('This activity has already started and can no longer be edited');
+    }
     if (dto.projectId !== undefined) activity.project = await this.resolveProject(user, dto.projectId);
     if (dto.title !== undefined) activity.title = dto.title.trim();
     if (dto.description !== undefined) activity.description = dto.description.trim() || null;
