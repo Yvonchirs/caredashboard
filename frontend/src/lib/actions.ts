@@ -92,6 +92,22 @@ export async function updateActivity(id: number, _state: FormState, formData: Fo
   return { success: "Activity updated." };
 }
 
+export async function addActivityPhotos(id: number, _state: FormState, formData: FormData): Promise<FormState> {
+  const payload = new FormData();
+  for (const photo of formData.getAll("photos")) {
+    if (photo instanceof File && photo.size > 0) payload.append("photos", photo);
+  }
+  if (![...payload.keys()].length) return { error: "Select at least one photo." };
+
+  try {
+    await api(`/activities/${id}/photos`, { method: "POST", body: payload });
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
+  revalidatePath("/", "layout");
+  return { success: "Photos added." };
+}
+
 export async function deleteActivity(id: number) {
   await api(`/activities/${id}`, { method: "DELETE" });
   revalidatePath("/", "layout");

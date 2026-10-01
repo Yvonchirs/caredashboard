@@ -4,7 +4,7 @@ import { computeActivityStatus, daysBetween } from '../common/date.util.js';
 import { serializeActivity } from '../common/serializers.js';
 import { Activity, Photo, Project, User } from '../entities/index.js';
 import type { CreateActivityDto, UpdateActivityDto } from './activities.dto.js';
-import { removeUploads } from './upload.config.js';
+import { MAX_PHOTOS, removeUploads } from './upload.config.js';
 
 const ACTIVITY_POPULATE = ['project', 'author', 'collaborators', 'photos'] as const;
 
@@ -62,6 +62,27 @@ export class ActivitiesService {
     }
     await this.em.flush();
     return serializeActivity(activity);
+  }
+
+  async addPhotos(user: User, id: number, files: Express.Multer.File[]) {
+    if (!files.length) throw new BadRequestException('Select at least one photo');
+    try {
+      const activity = await this.findEditable(user, id);
+      if (user.role !== 'admin' && computeActivityStatus(activity.date, activity.startTime ?? null) !== 'live') {
+        throw new ForbiddenException(
+          'Photos can only be added while the activity is live — from its start time until the end of that day',
+        );
+      }
+      if (activity.photos.length + files.length > MAX_PHOTOS) {
+        throw new BadRequestException(`An activity can have at most ${MAX_PHOTOS} photos (it already has ${activity.photos.length})`);
+      }
+      for (const file of files) this.em.create(Photo, { filename: file.filename, activity });
+      await this.em.flush();
+      return serializeActivity(activity);
+    } catch (error) {
+      await removeUploads(files.map((file) => file.filename));
+      throw error;
+    }
   }
 
   async remove(user: User, id: number) {

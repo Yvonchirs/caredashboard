@@ -29,6 +29,7 @@ import { CurrentUser } from '../common/current-user.decorator.js';
 import type { User } from '../entities/index.js';
 import {
   ActivityDto,
+  AddActivityPhotosDto,
   CreateActivityDto,
   CreateActivityWithPhotosDto,
   DateRangeQueryDto,
@@ -70,6 +71,23 @@ export class ActivitiesController {
   @ApiOkResponse({ type: ActivityDto })
   update(@CurrentUser() user: User, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateActivityDto) {
     return this.activities.update(user, id, dto);
+  }
+
+  @Post(':id/photos')
+  @UseInterceptors(FilesInterceptor('photos', MAX_PHOTOS, photoUploadOptions))
+  @ApiOperation({
+    summary: 'Add progress photos to an activity (author or admin), while it is live',
+    description: 'Lets the person who logged the activity post photo updates from its start time until the end of that day.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: AddActivityPhotosDto })
+  @ApiOkResponse({ type: ActivityDto })
+  addPhotos(
+    @CurrentUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles() files: Express.Multer.File[] = [],
+  ) {
+    return this.activities.addPhotos(user, id, files);
   }
 
   @Delete(':id')

@@ -81,6 +81,11 @@ export class CreateActivityWithPhotosDto extends CreateActivityDto {
 
 export class UpdateActivityDto extends PartialType(CreateActivityDto) {}
 
+export class AddActivityPhotosDto {
+  @ApiProperty({ type: 'array', items: { type: 'string', format: 'binary' }, description: 'One or more images, 5 MB each' })
+  photos: unknown[];
+}
+
 export class DateRangeQueryDto {
   @ApiProperty({ example: '2026-09-21' })
   @Matches(ISO_DATE, { message: 'from must be in YYYY-MM-DD format' })

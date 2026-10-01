@@ -1,12 +1,15 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
-import { useActionState, useState, useTransition } from "react";
+import { Camera, ImagePlus, Pencil, Trash2, X } from "lucide-react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { Dialog } from "@/components/dialog";
 import { SubmitButton } from "@/components/submit-button";
 import { Alert, Button, Field, Input, Select, Textarea } from "@/components/ui";
-import { deleteActivity, updateActivity } from "@/lib/actions";
+import { addActivityPhotos, deleteActivity, updateActivity } from "@/lib/actions";
 import type { Activity, FormState, Project, StaffRef } from "@/lib/types";
+
+const MAX_PHOTOS = 6;
+const MAX_BYTES = 5 * 1024 * 1024;
 
 export function ActivityActions({
   activity,
@@ -14,20 +17,34 @@ export function ActivityActions({
   colleagues,
   canEdit,
   canDelete,
+  canAddPhotos,
 }: {
   activity: Activity;
   projects: Project[];
   colleagues: StaffRef[];
   canEdit: boolean;
   canDelete: boolean;
+  canAddPhotos: boolean;
 }) {
   const [editing, setEditing] = useState(false);
+  const [addingPhotos, setAddingPhotos] = useState(false);
   const [deleting, startDelete] = useTransition();
 
-  if (!canEdit && !canDelete) return null;
+  if (!canEdit && !canDelete && !canAddPhotos) return null;
 
   return (
     <div className="flex shrink-0 items-start gap-0.5">
+      {canAddPhotos && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="px-2"
+          onClick={() => setAddingPhotos(true)}
+          aria-label={`Add photos to ${activity.title}`}
+        >
+          <Camera className="size-4" aria-hidden />
+        </Button>
+      )}
       {canEdit && (
         <Button variant="ghost" size="sm" className="px-2" onClick={() => setEditing(true)} aria-label={`Edit ${activity.title}`}>
           <Pencil className="size-4" aria-hidden />
@@ -48,6 +65,16 @@ export function ActivityActions({
           <Trash2 className="size-4" />
         </button>
       )}
+      {canAddPhotos && (
+        <Dialog
+          open={addingPhotos}
+          onClose={() => setAddingPhotos(false)}
+          title="Add photos"
+          description={`${activity.title} · ${activity.project.code}`}
+        >
+          <AddPhotosForm activity={activity} onDone={() => setAddingPhotos(false)} />
+        </Dialog>
+      )}
       {canEdit && (
         <Dialog
           open={editing}
@@ -59,6 +86,112 @@ export function ActivityActions({
         </Dialog>
       )}
     </div>
+  );
+}
+
+function AddPhotosForm({ activity, onDone }: { activity: Activity; onDone: () => void }) {
+  const remaining = MAX_PHOTOS - activity.photos.length;
+  const [state, action] = useActionState(async (prev: FormState, formData: FormData) => {
+    const result = await addActivityPhotos(activity.id, prev, formData);
+    if (result?.success) onDone();
+    return result;
+  }, undefined);
+  const [photos, setPhotos] = useState<{ file: File; url: string }[]>([]);
+  const [photoError, setPhotoError] = useState<string>();
+  const input = useRef<HTMLInputElement>(null);
+  const latest = useRef(photos);
+
+  useEffect(() => {
+    latest.current = photos;
+    if (!input.current) return;
+    const transfer = new DataTransfer();
+    photos.forEach((photo) => transfer.items.add(photo.file));
+    input.current.files = transfer.files;
+  }, [photos]);
+
+  useEffect(() => () => latest.current.forEach((photo) => URL.revokeObjectURL(photo.url)), []);
+
+  function removePhoto(photo: { file: File; url: string }) {
+    URL.revokeObjectURL(photo.url);
+    setPhotos((current) => current.filter((p) => p !== photo));
+  }
+
+  function addPhotos(files: FileList | null) {
+    const incoming = [...(files ?? [])];
+    const tooBig = incoming.some((file) => file.size > MAX_BYTES);
+    const accepted = incoming.filter((file) => file.size <= MAX_BYTES).slice(0, remaining - photos.length);
+    setPhotoError(
+      tooBig ? "Photos must be 5 MB or smaller." : incoming.length > accepted.length ? `You can add up to ${remaining} more photos.` : undefined,
+    );
+    setPhotos((current) => [...current, ...accepted.map((file) => ({ file, url: URL.createObjectURL(file) }))]);
+  }
+
+  if (remaining <= 0) {
+    return (
+      <div className="space-y-5">
+        <Alert tone="error">This activity already has the maximum of {MAX_PHOTOS} photos.</Alert>
+        <div className="flex justify-end">
+          <Button variant="secondary" onClick={onDone}>
+            Close
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <form action={action} className="space-y-5">
+      {state?.error && <Alert tone="error">{state.error}</Alert>}
+      <p className="text-sm text-ink-muted">
+        Post photos showing how the activity is going. You can add up to {remaining} more ({activity.photos.length}/{MAX_PHOTOS} so
+        far).
+      </p>
+
+      <input
+        ref={input}
+        id="update-photos"
+        name="photos"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        className="sr-only"
+        onChange={(event) => addPhotos(event.target.files)}
+      />
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+        {photos.map((photo, i) => (
+          <div key={photo.url} className="group relative aspect-square overflow-hidden rounded-md border border-line bg-ink-50">
+            {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
+            <img src={photo.url} alt={`Selected photo ${i + 1}`} className="size-full object-cover" />
+            <button
+              type="button"
+              onClick={() => removePhoto(photo)}
+              className="absolute top-1 right-1 rounded-full bg-ink/75 p-1 text-white hover:bg-ink"
+              aria-label={`Remove photo ${i + 1}`}
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+        ))}
+        {photos.length < remaining && (
+          <label
+            htmlFor="update-photos"
+            className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed border-line-strong text-ink-subtle transition-colors hover:border-brand hover:text-brand-dark"
+          >
+            <ImagePlus className="size-5" aria-hidden />
+            <span className="text-xs font-bold">Add</span>
+          </label>
+        )}
+      </div>
+      <p className="text-xs text-ink-subtle">JPEG, PNG or WebP, 5 MB max each.</p>
+      {photoError && <p className="text-xs text-danger">{photoError}</p>}
+
+      <div className="flex justify-end gap-2 border-t border-line pt-5">
+        <Button variant="secondary" onClick={onDone}>
+          Cancel
+        </Button>
+        <SubmitButton pendingText="Uploading">Add photos</SubmitButton>
+      </div>
+    </form>
   );
 }
 
