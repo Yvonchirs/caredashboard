@@ -4,7 +4,7 @@ export function StatsStrip({ stats }: { stats: Dashboard["stats"] }) {
   const items = [
     { label: "Activities", value: stats.activities },
     { label: "Projects active", value: stats.projects },
-    { label: "Staff in the field", value: stats.staff },
+    { label: "Staff involved", value: stats.staff },
     { label: "Locations", value: stats.locations },
   ];
 
