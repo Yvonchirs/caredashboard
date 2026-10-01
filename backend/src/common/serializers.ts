@@ -40,7 +40,7 @@ export function serializeActivity(activity: Activity) {
       ? activity.collaborators.getItems().map(serializeStaffRef)
       : [],
     photos: activity.photos.isInitialized()
-      ? activity.photos.getItems().map((photo) => ({ id: photo.id, url: `/uploads/${photo.filename}` }))
+      ? activity.photos.getItems().map((photo) => ({ id: photo.id, url: `/uploads/${photo.filename}`, caption: photo.caption ?? null }))
       : [],
     createdAt: activity.createdAt,
   };

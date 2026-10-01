@@ -9,6 +9,8 @@ export class PhotoDto {
   @ApiProperty() id: number;
   @ApiProperty({ example: '/uploads/1727100000000-a1b2c3.jpg', description: 'Path relative to the API origin' })
   url: string;
+  @ApiProperty({ type: String, nullable: true, example: 'Mixing fertiliser before the demo plot' })
+  caption: string | null;
 }
 
 export class ActivityDto {
@@ -72,6 +74,16 @@ export class CreateActivityDto {
   @Type(() => Number)
   @IsInt({ each: true })
   collaboratorIds?: number[];
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'A short caption for each photo, in the same order as the files (use an empty string to leave one blank)',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(160, { each: true })
+  captions?: string[];
 }
 
 export class CreateActivityWithPhotosDto extends CreateActivityDto {
@@ -84,6 +96,16 @@ export class UpdateActivityDto extends PartialType(CreateActivityDto) {}
 export class AddActivityPhotosDto {
   @ApiProperty({ type: 'array', items: { type: 'string', format: 'binary' }, description: 'One or more images, 5 MB each' })
   photos: unknown[];
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'A short caption for each photo, in the same order as the files (use an empty string to leave one blank)',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(160, { each: true })
+  captions?: string[];
 }
 
 export class DateRangeQueryDto {

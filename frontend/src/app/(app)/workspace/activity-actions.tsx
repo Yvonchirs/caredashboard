@@ -96,7 +96,7 @@ function AddPhotosForm({ activity, onDone }: { activity: Activity; onDone: () =>
     if (result?.success) onDone();
     return result;
   }, undefined);
-  const [photos, setPhotos] = useState<{ file: File; url: string }[]>([]);
+  const [photos, setPhotos] = useState<{ file: File; url: string; caption: string }[]>([]);
   const [photoError, setPhotoError] = useState<string>();
   const input = useRef<HTMLInputElement>(null);
   const latest = useRef(photos);
@@ -111,9 +111,13 @@ function AddPhotosForm({ activity, onDone }: { activity: Activity; onDone: () =>
 
   useEffect(() => () => latest.current.forEach((photo) => URL.revokeObjectURL(photo.url)), []);
 
-  function removePhoto(photo: { file: File; url: string }) {
+  function removePhoto(photo: { file: File; url: string; caption: string }) {
     URL.revokeObjectURL(photo.url);
     setPhotos((current) => current.filter((p) => p !== photo));
+  }
+
+  function setCaption(photo: { file: File; url: string; caption: string }, caption: string) {
+    setPhotos((current) => current.map((p) => (p === photo ? { ...p, caption } : p)));
   }
 
   function addPhotos(files: FileList | null) {
@@ -123,7 +127,7 @@ function AddPhotosForm({ activity, onDone }: { activity: Activity; onDone: () =>
     setPhotoError(
       tooBig ? "Photos must be 5 MB or smaller." : incoming.length > accepted.length ? `You can add up to ${remaining} more photos.` : undefined,
     );
-    setPhotos((current) => [...current, ...accepted.map((file) => ({ file, url: URL.createObjectURL(file) }))]);
+    setPhotos((current) => [...current, ...accepted.map((file) => ({ file, url: URL.createObjectURL(file), caption: "" }))]);
   }
 
   if (remaining <= 0) {
@@ -157,28 +161,38 @@ function AddPhotosForm({ activity, onDone }: { activity: Activity; onDone: () =>
         className="sr-only"
         onChange={(event) => addPhotos(event.target.files)}
       />
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+      <div className="space-y-2">
         {photos.map((photo, i) => (
-          <div key={photo.url} className="group relative aspect-square overflow-hidden rounded-md border border-line bg-ink-50">
-            {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
-            <img src={photo.url} alt={`Selected photo ${i + 1}`} className="size-full object-cover" />
+          <div key={photo.url} className="flex items-center gap-3 rounded-md border border-line bg-canvas/40 p-2">
+            <div className="relative size-12 shrink-0 overflow-hidden rounded-md bg-ink-50">
+              {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
+              <img src={photo.url} alt={`Selected photo ${i + 1}`} className="size-full object-cover" />
+            </div>
+            <Input
+              name="captions"
+              value={photo.caption}
+              onChange={(event) => setCaption(photo, event.target.value)}
+              maxLength={160}
+              placeholder="Add a short caption (optional)"
+              aria-label={`Caption for photo ${i + 1}`}
+            />
             <button
               type="button"
               onClick={() => removePhoto(photo)}
-              className="absolute top-1 right-1 rounded-full bg-ink/75 p-1 text-white hover:bg-ink"
+              className="shrink-0 rounded-full p-1.5 text-ink-subtle hover:bg-danger-50 hover:text-danger"
               aria-label={`Remove photo ${i + 1}`}
             >
-              <X className="size-3.5" />
+              <X className="size-4" />
             </button>
           </div>
         ))}
         {photos.length < remaining && (
           <label
             htmlFor="update-photos"
-            className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed border-line-strong text-ink-subtle transition-colors hover:border-brand hover:text-brand-dark"
+            className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed border-line-strong text-sm font-bold text-ink-subtle transition-colors hover:border-brand hover:text-brand-dark"
           >
-            <ImagePlus className="size-5" aria-hidden />
-            <span className="text-xs font-bold">Add</span>
+            <ImagePlus className="size-4" aria-hidden />
+            Add photo
           </label>
         )}
       </div>

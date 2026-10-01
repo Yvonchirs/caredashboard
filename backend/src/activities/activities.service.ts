@@ -36,7 +36,7 @@ export class ActivitiesService {
         author: user,
         collaborators,
       });
-      for (const file of files) this.em.create(Photo, { filename: file.filename, activity });
+      this.createPhotos(files, dto.captions, activity);
       await this.em.flush();
       await this.em.populate(activity, ['photos', 'collaborators']);
       return serializeActivity(activity);
@@ -64,7 +64,7 @@ export class ActivitiesService {
     return serializeActivity(activity);
   }
 
-  async addPhotos(user: User, id: number, files: Express.Multer.File[]) {
+  async addPhotos(user: User, id: number, files: Express.Multer.File[], captions?: string[]) {
     if (!files.length) throw new BadRequestException('Select at least one photo');
     try {
       const activity = await this.findEditable(user, id);
@@ -76,13 +76,20 @@ export class ActivitiesService {
       if (activity.photos.length + files.length > MAX_PHOTOS) {
         throw new BadRequestException(`An activity can have at most ${MAX_PHOTOS} photos (it already has ${activity.photos.length})`);
       }
-      for (const file of files) this.em.create(Photo, { filename: file.filename, activity });
+      this.createPhotos(files, captions, activity);
       await this.em.flush();
       return serializeActivity(activity);
     } catch (error) {
       await removeUploads(files.map((file) => file.filename));
       throw error;
     }
+  }
+
+  /** Links uploaded files to the activity as Photo entities, pairing each with its caption by position. */
+  private createPhotos(files: Express.Multer.File[], captions: string[] | undefined, activity: Activity) {
+    files.forEach((file, index) => {
+      this.em.create(Photo, { filename: file.filename, caption: captions?.[index]?.trim() || null, activity });
+    });
   }
 
   async remove(user: User, id: number) {

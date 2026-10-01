@@ -9,6 +9,17 @@ import type { FormState, User } from "./types";
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
 const ids = (formData: FormData, key: string) => formData.getAll(key).map(Number);
 
+/** Carries over photo files with their matching captions (same position in both lists). */
+function appendPhotosWithCaptions(source: FormData, target: FormData) {
+  const captions = source.getAll("captions");
+  source.getAll("photos").forEach((photo, index) => {
+    if (photo instanceof File && photo.size > 0) {
+      target.append("photos", photo);
+      target.append("captions[]", String(captions[index] ?? "").trim());
+    }
+  });
+}
+
 export async function login(_state: FormState, formData: FormData): Promise<FormState> {
   let result: { accessToken: string; user: User };
   try {
@@ -60,9 +71,7 @@ export async function createActivity(_state: FormState, formData: FormData): Pro
     if (value) payload.set(key, value);
   }
   for (const id of ids(formData, "collaboratorIds")) payload.append("collaboratorIds[]", String(id));
-  for (const photo of formData.getAll("photos")) {
-    if (photo instanceof File && photo.size > 0) payload.append("photos", photo);
-  }
+  appendPhotosWithCaptions(formData, payload);
 
   try {
     await api("/activities", { method: "POST", body: payload });
@@ -94,10 +103,8 @@ export async function updateActivity(id: number, _state: FormState, formData: Fo
 
 export async function addActivityPhotos(id: number, _state: FormState, formData: FormData): Promise<FormState> {
   const payload = new FormData();
-  for (const photo of formData.getAll("photos")) {
-    if (photo instanceof File && photo.size > 0) payload.append("photos", photo);
-  }
-  if (![...payload.keys()].length) return { error: "Select at least one photo." };
+  appendPhotosWithCaptions(formData, payload);
+  if (!payload.getAll("photos").length) return { error: "Select at least one photo." };
 
   try {
     await api(`/activities/${id}/photos`, { method: "POST", body: payload });

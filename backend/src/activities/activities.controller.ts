@@ -85,9 +85,10 @@ export class ActivitiesController {
   addPhotos(
     @CurrentUser() user: User,
     @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AddActivityPhotosDto,
     @UploadedFiles() files: Express.Multer.File[] = [],
   ) {
-    return this.activities.addPhotos(user, id, files);
+    return this.activities.addPhotos(user, id, files, dto.captions);
   }
 
   @Delete(':id')

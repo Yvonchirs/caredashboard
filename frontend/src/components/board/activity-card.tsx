@@ -153,17 +153,20 @@ function ActivityDetails({ activity }: { activity: Activity }) {
       {activity.description && <p className="text-sm leading-relaxed text-ink-muted whitespace-pre-line">{activity.description}</p>}
 
       {activity.photos.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {activity.photos.map((photo) => (
-            <a
-              key={photo.id}
-              href={photo.url}
-              target="_blank"
-              rel="noreferrer"
-              className="relative aspect-4/3 overflow-hidden rounded-md bg-ink-50"
-            >
-              <Image src={photo.url} alt={`Photo from ${activity.title}`} fill sizes="(min-width: 768px) 240px, 50vw" className="object-cover" />
-            </a>
+            <figure key={photo.id} className="space-y-1">
+              <a href={photo.url} target="_blank" rel="noreferrer" className="relative block aspect-4/3 overflow-hidden rounded-md bg-ink-50">
+                <Image
+                  src={photo.url}
+                  alt={photo.caption || `Photo from ${activity.title}`}
+                  fill
+                  sizes="(min-width: 768px) 240px, 50vw"
+                  className="object-cover"
+                />
+              </a>
+              {photo.caption && <figcaption className="text-xs text-ink-muted">{photo.caption}</figcaption>}
+            </figure>
           ))}
         </div>
       )}

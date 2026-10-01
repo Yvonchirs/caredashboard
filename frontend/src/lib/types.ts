@@ -33,6 +33,12 @@ export interface Project extends ProjectRef {
   createdAt: string;
 }
 
+export interface ActivityPhoto {
+  id: number;
+  url: string;
+  caption: string | null;
+}
+
 export interface Activity {
   id: number;
   title: string;
@@ -44,7 +50,7 @@ export interface Activity {
   project: ProjectRef;
   author: StaffRef;
   collaborators: StaffRef[];
-  photos: { id: number; url: string }[];
+  photos: ActivityPhoto[];
   createdAt: string;
 }
 

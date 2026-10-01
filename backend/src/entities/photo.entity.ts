@@ -6,6 +6,7 @@ export const PhotoSchema = defineEntity({
   properties: {
     id: p.integer().primary(),
     filename: p.string(),
+    caption: p.string().length(160).nullable(),
     activity: () => p.manyToOne(Activity).deleteRule('cascade'),
     createdAt: p.datetime().onCreate(() => new Date()),
   },
