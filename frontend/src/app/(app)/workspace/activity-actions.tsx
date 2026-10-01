@@ -1,11 +1,12 @@
 "use client";
 
-import { Camera, ClipboardCheck, ImagePlus, Pencil, Trash2, X } from "lucide-react";
+import { Camera, ClipboardCheck, FileDown, ImagePlus, Pencil, Trash2, X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { Dialog } from "@/components/dialog";
 import { SubmitButton } from "@/components/submit-button";
-import { Alert, Button, Field, Input, Select, Textarea } from "@/components/ui";
+import { Alert, Button, buttonStyles, Field, Input, Select, Textarea } from "@/components/ui";
 import { addActivityPhotos, deleteActivity, setActivityOutcome, updateActivity } from "@/lib/actions";
+import { cn } from "@/lib/cn";
 import type { Activity, FormState, Project, StaffRef } from "@/lib/types";
 
 const MAX_PHOTOS = 6;
@@ -19,6 +20,7 @@ export function ActivityActions({
   canDelete,
   canAddPhotos,
   canSetOutcome,
+  canDownloadReport,
 }: {
   activity: Activity;
   projects: Project[];
@@ -27,13 +29,14 @@ export function ActivityActions({
   canDelete: boolean;
   canAddPhotos: boolean;
   canSetOutcome: boolean;
+  canDownloadReport: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [addingPhotos, setAddingPhotos] = useState(false);
   const [settingOutcome, setSettingOutcome] = useState(false);
   const [deleting, startDelete] = useTransition();
 
-  if (!canEdit && !canDelete && !canAddPhotos && !canSetOutcome) return null;
+  if (!canEdit && !canDelete && !canAddPhotos && !canSetOutcome && !canDownloadReport) return null;
 
   return (
     <div className="flex shrink-0 items-start gap-0.5">
@@ -58,6 +61,15 @@ export function ActivityActions({
         >
           <ClipboardCheck className="size-4" aria-hidden />
         </Button>
+      )}
+      {canDownloadReport && (
+        <a
+          href={`/reports/activities/${activity.id}`}
+          className={cn(buttonStyles({ variant: "ghost", size: "sm" }), "px-2")}
+          aria-label={`Download PDF report for ${activity.title}`}
+        >
+          <FileDown className="size-4" aria-hidden />
+        </a>
       )}
       {canEdit && (
         <Button variant="ghost" size="sm" className="px-2" onClick={() => setEditing(true)} aria-label={`Edit ${activity.title}`}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, FileDown, MapPin } from "lucide-react";
+import { Clock, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { formatLongDate } from "@/lib/dates";
@@ -183,16 +183,6 @@ function ActivityDetails({ activity }: { activity: Activity }) {
             </figure>
           ))}
         </div>
-      )}
-
-      {activity.status === "completed" && (
-        <a
-          href={`/reports/activities/${activity.id}`}
-          className="inline-flex items-center gap-2 border-t border-line pt-4 text-sm font-bold text-ink hover:text-brand-dark"
-        >
-          <FileDown className="size-4" aria-hidden />
-          Download PDF report
-        </a>
       )}
     </div>
   );
