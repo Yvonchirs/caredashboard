@@ -34,18 +34,20 @@ export function nowInAppTz(now = new Date()): { date: string; time: string } {
 }
 
 /**
- * Derives an activity's status from its date and optional start time — never stored, always computed.
+ * Derives an activity's status from its date and optional start/end time — never stored, always computed.
  * Before the date: pending. On the date, from the start time (or from the start of the day when no
- * start time is set) until midnight: live. After the date: completed.
+ * start time is set) until the end time (or midnight when no end time is set): live. After that: completed.
  */
 export function computeActivityStatus(
   date: string,
   startTime: string | null,
+  endTime: string | null = null,
   now = new Date(),
 ): 'pending' | 'live' | 'completed' {
   const { date: today, time: nowTime } = nowInAppTz(now);
   if (date < today) return 'completed';
   if (date > today) return 'pending';
+  if (endTime && nowTime > endTime) return 'completed';
   if (!startTime || startTime <= nowTime) return 'live';
   return 'pending';
 }

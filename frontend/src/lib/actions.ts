@@ -66,7 +66,7 @@ export async function changePassword(_state: FormState, formData: FormData): Pro
 
 export async function createActivity(_state: FormState, formData: FormData): Promise<FormState> {
   const payload = new FormData();
-  for (const key of ["title", "description", "date", "startTime", "location", "projectId"]) {
+  for (const key of ["title", "description", "date", "startTime", "endTime", "location", "projectId"]) {
     const value = text(formData, key);
     if (value) payload.set(key, value);
   }
@@ -89,6 +89,7 @@ export async function updateActivity(id: number, _state: FormState, formData: Fo
     description: text(formData, "description") || null,
     date: text(formData, "date"),
     startTime: text(formData, "startTime") || null,
+    endTime: text(formData, "endTime") || null,
     location: text(formData, "location"),
     collaboratorIds: ids(formData, "collaboratorIds"),
   };
@@ -99,6 +100,18 @@ export async function updateActivity(id: number, _state: FormState, formData: Fo
   }
   revalidatePath("/", "layout");
   return { success: "Activity updated." };
+}
+
+export async function setActivityOutcome(id: number, _state: FormState, formData: FormData): Promise<FormState> {
+  const outcome = text(formData, "outcome");
+  if (outcome.length < 3) return { error: "Describe the outcome in at least a few words." };
+  try {
+    await api(`/activities/${id}/outcome`, { method: "PATCH", body: { outcome } });
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
+  revalidatePath("/", "layout");
+  return { success: "Outcome recorded." };
 }
 
 export async function addActivityPhotos(id: number, _state: FormState, formData: FormData): Promise<FormState> {

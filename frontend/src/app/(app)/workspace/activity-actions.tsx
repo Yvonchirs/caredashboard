@@ -1,11 +1,11 @@
 "use client";
 
-import { Camera, ImagePlus, Pencil, Trash2, X } from "lucide-react";
+import { Camera, ClipboardCheck, ImagePlus, Pencil, Trash2, X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { Dialog } from "@/components/dialog";
 import { SubmitButton } from "@/components/submit-button";
 import { Alert, Button, Field, Input, Select, Textarea } from "@/components/ui";
-import { addActivityPhotos, deleteActivity, updateActivity } from "@/lib/actions";
+import { addActivityPhotos, deleteActivity, setActivityOutcome, updateActivity } from "@/lib/actions";
 import type { Activity, FormState, Project, StaffRef } from "@/lib/types";
 
 const MAX_PHOTOS = 6;
@@ -18,6 +18,7 @@ export function ActivityActions({
   canEdit,
   canDelete,
   canAddPhotos,
+  canSetOutcome,
 }: {
   activity: Activity;
   projects: Project[];
@@ -25,12 +26,14 @@ export function ActivityActions({
   canEdit: boolean;
   canDelete: boolean;
   canAddPhotos: boolean;
+  canSetOutcome: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [addingPhotos, setAddingPhotos] = useState(false);
+  const [settingOutcome, setSettingOutcome] = useState(false);
   const [deleting, startDelete] = useTransition();
 
-  if (!canEdit && !canDelete && !canAddPhotos) return null;
+  if (!canEdit && !canDelete && !canAddPhotos && !canSetOutcome) return null;
 
   return (
     <div className="flex shrink-0 items-start gap-0.5">
@@ -43,6 +46,17 @@ export function ActivityActions({
           aria-label={`Add photos to ${activity.title}`}
         >
           <Camera className="size-4" aria-hidden />
+        </Button>
+      )}
+      {canSetOutcome && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="px-2"
+          onClick={() => setSettingOutcome(true)}
+          aria-label={`Record outcome for ${activity.title}`}
+        >
+          <ClipboardCheck className="size-4" aria-hidden />
         </Button>
       )}
       {canEdit && (
@@ -75,6 +89,16 @@ export function ActivityActions({
           <AddPhotosForm activity={activity} onDone={() => setAddingPhotos(false)} />
         </Dialog>
       )}
+      {canSetOutcome && (
+        <Dialog
+          open={settingOutcome}
+          onClose={() => setSettingOutcome(false)}
+          title="Record outcome"
+          description={`${activity.title} · ${activity.project.code}`}
+        >
+          <OutcomeForm activity={activity} onDone={() => setSettingOutcome(false)} />
+        </Dialog>
+      )}
       {canEdit && (
         <Dialog
           open={editing}
@@ -86,6 +110,38 @@ export function ActivityActions({
         </Dialog>
       )}
     </div>
+  );
+}
+
+function OutcomeForm({ activity, onDone }: { activity: Activity; onDone: () => void }) {
+  const [state, action] = useActionState(async (prev: FormState, formData: FormData) => {
+    const result = await setActivityOutcome(activity.id, prev, formData);
+    if (result?.success) onDone();
+    return result;
+  }, undefined);
+
+  return (
+    <form action={action} className="space-y-5">
+      {state?.error && <Alert tone="error">{state.error}</Alert>}
+      <Field label="What came out of this activity?" htmlFor="outcome" hint="A few sentences on results, numbers reached, or next steps">
+        <Textarea
+          id="outcome"
+          name="outcome"
+          required
+          minLength={3}
+          maxLength={2000}
+          defaultValue={activity.outcome ?? ""}
+          placeholder="e.g. 28 participants attended; 4 new savings groups formed."
+          autoFocus
+        />
+      </Field>
+      <div className="flex justify-end gap-2 border-t border-line pt-5">
+        <Button variant="secondary" onClick={onDone}>
+          Cancel
+        </Button>
+        <SubmitButton pendingText="Saving">Save outcome</SubmitButton>
+      </div>
+    </form>
   );
 }
 
@@ -245,17 +301,20 @@ function EditActivityForm({
         <Input id="edit-title" name="title" required minLength={3} maxLength={160} defaultValue={activity.title} />
       </Field>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-3">
         <Field label="Date" htmlFor="edit-date">
           <Input id="edit-date" name="date" type="date" required defaultValue={activity.date} />
         </Field>
         <Field label="Start time" htmlFor="edit-startTime" optional>
           <Input id="edit-startTime" name="startTime" type="time" defaultValue={activity.startTime ?? ""} />
         </Field>
+        <Field label="End time" htmlFor="edit-endTime" optional>
+          <Input id="edit-endTime" name="endTime" type="time" defaultValue={activity.endTime ?? ""} />
+        </Field>
       </div>
       <p className="-mt-3 text-xs text-ink-subtle">
-        Status is set automatically: pending beforehand, live from the date and time you give until the end of that day, then
-        completed.
+        Status is set automatically: pending beforehand, live from the start time (or from midnight if none is given) until the
+        end time (or midnight if none is given), then completed.
       </p>
 
       <Field label="Location" htmlFor="edit-location">

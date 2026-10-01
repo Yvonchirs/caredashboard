@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, MapPin } from "lucide-react";
+import { Clock, FileDown, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { formatLongDate } from "@/lib/dates";
@@ -54,6 +54,7 @@ export function ActivityCard({ activity }: { activity: Activity }) {
                 <span className="inline-flex items-center gap-1 font-bold text-brand-dark tabular">
                   <Clock className="size-3.5" aria-hidden />
                   {activity.startTime}
+                  {activity.endTime && `–${activity.endTime}`}
                 </span>
               )}
               <span className="inline-flex min-w-0 items-center gap-1 text-ink-subtle">
@@ -130,7 +131,13 @@ function ActivityDetails({ activity }: { activity: Activity }) {
           <dt className="text-xs font-bold tracking-wide text-ink-subtle uppercase">Date</dt>
           <dd className="mt-0.5 font-medium">
             {formatLongDate(activity.date)}
-            {activity.startTime && <span className="tabular"> · {activity.startTime}</span>}
+            {activity.startTime && (
+              <span className="tabular">
+                {" "}
+                · {activity.startTime}
+                {activity.endTime && `–${activity.endTime}`}
+              </span>
+            )}
           </dd>
         </div>
         <div>
@@ -152,6 +159,13 @@ function ActivityDetails({ activity }: { activity: Activity }) {
 
       {activity.description && <p className="text-sm leading-relaxed text-ink-muted whitespace-pre-line">{activity.description}</p>}
 
+      {activity.outcome && (
+        <div className="border-l-4 border-success bg-success-50 px-4 py-3">
+          <p className="text-xs font-bold tracking-wide text-success uppercase">Outcome</p>
+          <p className="mt-1 text-sm leading-relaxed text-ink whitespace-pre-line">{activity.outcome}</p>
+        </div>
+      )}
+
       {activity.photos.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {activity.photos.map((photo) => (
@@ -169,6 +183,16 @@ function ActivityDetails({ activity }: { activity: Activity }) {
             </figure>
           ))}
         </div>
+      )}
+
+      {activity.status === "completed" && (
+        <a
+          href={`/reports/activities/${activity.id}`}
+          className="inline-flex items-center gap-2 border-t border-line pt-4 text-sm font-bold text-ink hover:text-brand-dark"
+        >
+          <FileDown className="size-4" aria-hidden />
+          Download PDF report
+        </a>
       )}
     </div>
   );

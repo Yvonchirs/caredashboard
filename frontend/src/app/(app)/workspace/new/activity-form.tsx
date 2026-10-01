@@ -76,17 +76,20 @@ export function ActivityForm({
         <Input id="title" name="title" required minLength={3} maxLength={160} placeholder="e.g. VSLA share-out meeting" />
       </Field>
 
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-3">
         <Field label="Date" htmlFor="date">
           <Input id="date" name="date" type="date" required defaultValue={today} />
         </Field>
         <Field label="Start time" htmlFor="startTime" optional>
           <Input id="startTime" name="startTime" type="time" />
         </Field>
+        <Field label="End time" htmlFor="endTime" optional>
+          <Input id="endTime" name="endTime" type="time" />
+        </Field>
       </div>
       <p className="-mt-3 text-xs text-ink-subtle">
-        Status is set automatically: pending beforehand, live from the date and time you give until the end of that day, then
-        completed.
+        Status is set automatically: pending beforehand, live from the start time (or from midnight if none is given) until the
+        end time (or midnight if none is given), then completed.
       </p>
 
       <Field label="Location" htmlFor="location" hint="Village, sector or district">

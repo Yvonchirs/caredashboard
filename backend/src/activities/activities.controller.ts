@@ -33,6 +33,7 @@ import {
   CreateActivityDto,
   CreateActivityWithPhotosDto,
   DateRangeQueryDto,
+  SetActivityOutcomeDto,
   UpdateActivityDto,
 } from './activities.dto.js';
 import { ActivitiesService } from './activities.service.js';
@@ -89,6 +90,15 @@ export class ActivitiesController {
     @UploadedFiles() files: Express.Multer.File[] = [],
   ) {
     return this.activities.addPhotos(user, id, files, dto.captions);
+  }
+
+  @Patch(':id/outcome')
+  @ApiOperation({
+    summary: 'Record the outcome of an activity (author or admin), once it is completed',
+  })
+  @ApiOkResponse({ type: ActivityDto })
+  setOutcome(@CurrentUser() user: User, @Param('id', ParseIntPipe) id: number, @Body() dto: SetActivityOutcomeDto) {
+    return this.activities.setOutcome(user, id, dto.outcome);
   }
 
   @Delete(':id')

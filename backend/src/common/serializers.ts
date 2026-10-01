@@ -32,8 +32,9 @@ export function serializeActivity(activity: Activity) {
     description: activity.description ?? null,
     date: activity.date,
     startTime: activity.startTime ?? null,
+    endTime: activity.endTime ?? null,
     location: activity.location,
-    status: computeActivityStatus(activity.date, activity.startTime ?? null),
+    status: computeActivityStatus(activity.date, activity.startTime ?? null, activity.endTime ?? null),
     project: serializeProjectRef(activity.project),
     author: serializeStaffRef(activity.author),
     collaborators: activity.collaborators.isInitialized()
@@ -42,6 +43,7 @@ export function serializeActivity(activity: Activity) {
     photos: activity.photos.isInitialized()
       ? activity.photos.getItems().map((photo) => ({ id: photo.id, url: `/uploads/${photo.filename}`, caption: photo.caption ?? null }))
       : [],
+    outcome: activity.outcome ?? null,
     createdAt: activity.createdAt,
   };
 }

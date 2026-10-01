@@ -19,6 +19,7 @@ export class ActivityDto {
   @ApiProperty({ type: String, nullable: true }) description: string | null;
   @ApiProperty({ example: '2026-09-23' }) date: string;
   @ApiProperty({ type: String, nullable: true, example: '09:30' }) startTime: string | null;
+  @ApiProperty({ type: String, nullable: true, example: '11:00' }) endTime: string | null;
   @ApiProperty() location: string;
   @ApiProperty({ enum: ACTIVITY_STATUSES, description: 'Computed from the date/time — cannot be set directly' })
   status: ActivityStatus;
@@ -28,6 +29,8 @@ export class ActivityDto {
   @ApiProperty({ type: [StaffRefDto], description: 'Additional staff also working on this activity' })
   collaborators: StaffRefDto[];
   @ApiProperty({ type: [PhotoDto] }) photos: PhotoDto[];
+  @ApiProperty({ type: String, nullable: true, description: 'Recorded once the activity is completed' })
+  outcome: string | null;
   @ApiProperty() createdAt: Date;
 }
 
@@ -52,6 +55,11 @@ export class CreateActivityDto {
   @IsOptional()
   @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'startTime must be in HH:mm format' })
   startTime?: string;
+
+  @ApiPropertyOptional({ example: '11:00', description: 'HH:mm, must be after startTime when both are set' })
+  @IsOptional()
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'endTime must be in HH:mm format' })
+  endTime?: string;
 
   @ApiProperty({ example: 'Kigali, Gasabo District' })
   @IsString()
@@ -106,6 +114,17 @@ export class AddActivityPhotosDto {
   @IsString({ each: true })
   @MaxLength(160, { each: true })
   captions?: string[];
+}
+
+export class SetActivityOutcomeDto {
+  @ApiProperty({
+    example: 'Reached 28 participants; four new savings groups formed as a direct result.',
+    description: 'What came out of the activity — only recordable once it is completed',
+  })
+  @IsString()
+  @MinLength(3)
+  @MaxLength(2000)
+  outcome: string;
 }
 
 export class DateRangeQueryDto {

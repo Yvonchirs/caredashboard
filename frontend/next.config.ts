@@ -7,7 +7,10 @@ const nextConfig: NextConfig = {
     serverActions: { bodySizeLimit: "32mb" },
   },
   async rewrites() {
-    return [{ source: "/uploads/:path*", destination: `${apiUrl}/uploads/:path*` }];
+    return [
+      { source: "/uploads/:path*", destination: `${apiUrl}/uploads/:path*` },
+      { source: "/reports/activities/:id", destination: `${apiUrl}/dashboard/activities/:id/report` },
+    ];
   },
 };
 

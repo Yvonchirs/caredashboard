@@ -45,12 +45,14 @@ export interface Activity {
   description: string | null;
   date: string;
   startTime: string | null;
+  endTime: string | null;
   location: string;
   status: ActivityStatus;
   project: ProjectRef;
   author: StaffRef;
   collaborators: StaffRef[];
   photos: ActivityPhoto[];
+  outcome: string | null;
   createdAt: string;
 }
 

@@ -24,6 +24,7 @@ export class ActivitiesService {
 
   async create(user: User, dto: CreateActivityDto, files: Express.Multer.File[]) {
     try {
+      assertTimeOrder(dto.startTime ?? null, dto.endTime ?? null);
       const project = await this.resolveProject(user, dto.projectId);
       const collaborators = await this.resolveCollaborators(dto.collaboratorIds, user.id);
       const activity = this.em.create(Activity, {
@@ -31,6 +32,7 @@ export class ActivitiesService {
         description: dto.description?.trim() || null,
         date: dto.date,
         startTime: dto.startTime || null,
+        endTime: dto.endTime || null,
         location: dto.location.trim(),
         project,
         author: user,
@@ -48,7 +50,7 @@ export class ActivitiesService {
 
   async update(user: User, id: number, dto: UpdateActivityDto) {
     const activity = await this.findEditable(user, id);
-    if (user.role !== 'admin' && computeActivityStatus(activity.date, activity.startTime ?? null) !== 'pending') {
+    if (user.role !== 'admin' && computeActivityStatus(activity.date, activity.startTime ?? null, activity.endTime ?? null) !== 'pending') {
       throw new ForbiddenException('This activity has already started and can no longer be edited');
     }
     if (dto.projectId !== undefined) activity.project = await this.resolveProject(user, dto.projectId);
@@ -56,10 +58,22 @@ export class ActivitiesService {
     if (dto.description !== undefined) activity.description = dto.description.trim() || null;
     if (dto.date !== undefined) activity.date = dto.date;
     if (dto.startTime !== undefined) activity.startTime = dto.startTime || null;
+    if (dto.endTime !== undefined) activity.endTime = dto.endTime || null;
     if (dto.location !== undefined) activity.location = dto.location.trim();
     if (dto.collaboratorIds !== undefined) {
       activity.collaborators.set(await this.resolveCollaborators(dto.collaboratorIds, activity.author.id));
     }
+    assertTimeOrder(activity.startTime ?? null, activity.endTime ?? null);
+    await this.em.flush();
+    return serializeActivity(activity);
+  }
+
+  async setOutcome(user: User, id: number, outcome: string) {
+    const activity = await this.findEditable(user, id);
+    if (user.role !== 'admin' && computeActivityStatus(activity.date, activity.startTime ?? null, activity.endTime ?? null) !== 'completed') {
+      throw new ForbiddenException('The outcome can only be recorded once the activity is completed');
+    }
+    activity.outcome = outcome.trim();
     await this.em.flush();
     return serializeActivity(activity);
   }
@@ -68,7 +82,7 @@ export class ActivitiesService {
     if (!files.length) throw new BadRequestException('Select at least one photo');
     try {
       const activity = await this.findEditable(user, id);
-      if (user.role !== 'admin' && computeActivityStatus(activity.date, activity.startTime ?? null) !== 'live') {
+      if (user.role !== 'admin' && computeActivityStatus(activity.date, activity.startTime ?? null, activity.endTime ?? null) !== 'live') {
         throw new ForbiddenException(
           'Photos can only be added while the activity is live — from its start time until the end of that day',
         );
@@ -90,6 +104,15 @@ export class ActivitiesService {
     files.forEach((file, index) => {
       this.em.create(Photo, { filename: file.filename, caption: captions?.[index]?.trim() || null, activity });
     });
+  }
+
+  /** Loads a completed activity for its downloadable report. Public: no author/admin restriction. */
+  async findForReport(id: number) {
+    const activity = await this.em.findOneOrFail(Activity, id, { populate: ACTIVITY_POPULATE });
+    if (computeActivityStatus(activity.date, activity.startTime ?? null, activity.endTime ?? null) !== 'completed') {
+      throw new BadRequestException('The report is only available once the activity is completed');
+    }
+    return activity;
   }
 
   async remove(user: User, id: number) {
@@ -122,6 +145,12 @@ export class ActivitiesService {
     const users = await this.em.find(User, { id: { $in: uniqueIds }, isActive: true });
     if (users.length !== uniqueIds.length) throw new BadRequestException('One or more staff members were not found');
     return users;
+  }
+}
+
+export function assertTimeOrder(startTime: string | null, endTime: string | null) {
+  if (startTime && endTime && endTime <= startTime) {
+    throw new BadRequestException('End time must be after start time');
   }
 }
 

@@ -16,7 +16,10 @@ export const ActivitySchema = defineEntity({
     /** Calendar day in YYYY-MM-DD form. */
     date: p.string().length(10).index(),
     startTime: p.string().length(5).nullable(),
+    endTime: p.string().length(5).nullable(),
     location: p.string(),
+    /** Set once the activity is completed, see common/date.util.ts#computeActivityStatus. */
+    outcome: p.text().nullable(),
     project: () => p.manyToOne(Project).deleteRule('cascade'),
     author: () => p.manyToOne(User).deleteRule('cascade'),
     /** Extra staff tagged as also working on this activity, besides the author. */
