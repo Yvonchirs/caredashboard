@@ -1,0 +1,19 @@
+[Unit]
+Description=CARE Rwanda Activity Dashboard - Web
+After=network.target caredash-api.service
+Wants=caredash-api.service
+
+[Service]
+User=caredash
+Group=caredash
+WorkingDirectory=/opt/caredashboard/app/frontend
+EnvironmentFile=/opt/caredashboard/shared/web.env
+Environment=PATH=/opt/caredashboard/node/bin:/usr/bin:/bin
+ExecStart=/opt/caredashboard/node/bin/node node_modules/next/dist/bin/next start -p 3001 -H 0.0.0.0
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

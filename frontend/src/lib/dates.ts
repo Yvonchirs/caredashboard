@@ -26,6 +26,10 @@ export function addDays(iso: string, days: number): string {
   return format(date);
 }
 
+export function daysBetween(from: string, to: string): number {
+  return Math.round((parse(to).getTime() - parse(from).getTime()) / 86_400_000);
+}
+
 export function startOfWeek(iso: string): string {
   return addDays(iso, -((parse(iso).getUTCDay() + 6) % 7));
 }

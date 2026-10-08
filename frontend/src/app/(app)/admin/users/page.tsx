@@ -46,7 +46,10 @@ export default async function UsersPage() {
                   </p>
                 </td>
                 <td className="px-5 py-3.5">
-                  {user.role === "admin" ? <Badge tone="brand">Admin</Badge> : <Badge>Staff</Badge>}
+                  <div className="flex flex-wrap gap-1">
+                    {user.role === "admin" ? <Badge tone="brand">Admin</Badge> : <Badge>Staff</Badge>}
+                    {user.role !== "admin" && user.canPostNotices && <Badge tone="ink">Notices</Badge>}
+                  </div>
                 </td>
                 <td className="px-5 py-3.5">
                   {user.role === "admin" ? (

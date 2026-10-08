@@ -22,6 +22,8 @@ export class UserDto {
   @ApiProperty({ type: String, nullable: true }) jobTitle: string | null;
   @ApiProperty() isActive: boolean;
   @ApiProperty() mustChangePassword: boolean;
+  @ApiProperty({ description: 'May post deadlines and announcements (always true for admins)' })
+  canPostNotices: boolean;
   @ApiProperty({ type: [ProjectRefDto], description: 'Projects the user may log activities for' })
   projects: ProjectRefDto[];
   @ApiProperty() createdAt: Date;
@@ -54,6 +56,11 @@ export class CreateUserDto {
   @ArrayUnique()
   @IsInt({ each: true })
   projectIds?: number[];
+
+  @ApiPropertyOptional({ default: false, description: 'Allow posting deadlines and announcements on the board' })
+  @IsOptional()
+  @IsBoolean()
+  canPostNotices?: boolean;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {

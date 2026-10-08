@@ -2,7 +2,7 @@ import type { EntityManager } from '@mikro-orm/core';
 import { Seeder } from '@mikro-orm/seeder';
 import { addDays, toIsoDate } from '../common/date.util.js';
 import { hashPassword } from '../common/password.util.js';
-import { Activity, Project, User } from '../entities/index.js';
+import { Activity, Notice, Project, User } from '../entities/index.js';
 
 export const SEED_ADMIN = { email: 'admin@care.org.rw', password: 'Admin@12345' };
 export const SEED_STAFF_PASSWORD = 'Staff@12345';
@@ -154,5 +154,17 @@ export class DatabaseSeeder extends Seeder {
       author: trainer.user,
     });
     workshop.collaborators.set(cofacilitators.map((member) => member.user));
+
+    // Diane can post notices; a few deadlines and announcements for today and tomorrow.
+    const diane = staff.find((member) => member.user.name.startsWith('Diane'))!.user;
+    diane.canPostNotices = true;
+    const today = toIsoDate(new Date());
+    const notices = [
+      { kind: 'deadline', title: 'Q3 narrative reports due to M&E', details: 'Use the updated reporting template on SharePoint.', date: today, time: '17:00' },
+      { kind: 'deadline', title: 'Fuel and per diem claims for September', date: today, time: '12:00' },
+      { kind: 'announcement', title: 'All-staff meeting moved to Friday 10:00', details: 'Kigali office, main hall. Field teams can join online.', date: today },
+      { kind: 'announcement', title: 'Country Director visiting Nyamagabe projects', date: addDays(today, 1) },
+    ] as const;
+    for (const notice of notices) em.create(Notice, { ...notice, author: diane });
   }
 }

@@ -52,6 +52,7 @@ function CreateUserForm({ projects, onClose }: { projects: Project[]; onClose: (
 
 function UserFields({ user, projects, isSelf }: { user?: User; projects: Project[]; isSelf?: boolean }) {
   const [role, setRole] = useState(user?.role ?? "staff");
+  const [canPostNotices, setCanPostNotices] = useState(user?.role === "staff" && user.canPostNotices);
   const assigned = new Set(user?.projects.map((p) => p.id));
 
   return (
@@ -110,6 +111,23 @@ function UserFields({ user, projects, isSelf }: { user?: User; projects: Project
           ))}
         </div>
       </fieldset>
+
+      <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-line px-3 py-3 text-sm has-disabled:cursor-default has-disabled:opacity-60">
+        <input
+          type="checkbox"
+          name="canPostNotices"
+          checked={role === "admin" || canPostNotices}
+          onChange={(event) => setCanPostNotices(event.target.checked)}
+          disabled={role === "admin"}
+          className="mt-0.5 size-4 accent-brand"
+        />
+        <span>
+          <span className="block font-bold">Can post deadlines &amp; announcements</span>
+          <span className="block text-xs text-ink-subtle">
+            {role === "admin" ? "Admins can always post them." : "Shown in the side panel of the public board."}
+          </span>
+        </span>
+      </label>
     </>
   );
 }

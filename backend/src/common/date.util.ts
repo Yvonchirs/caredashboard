@@ -56,3 +56,55 @@ export function computeActivityStatus(
   if (today > lastDay || (today === lastDay && endTime && nowTime > endTime)) return 'completed';
   return 'live';
 }
+
+const RECURRENCE_MONTHS = { monthly: 1, quarterly: 3, yearly: 12 } as const;
+
+/** Adds months, keeping the day of month but clamping to the month's last day (31 Jan + 1 month = 28/29 Feb). */
+function addMonths(iso: string, months: number): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const lastDay = new Date(y, m - 1 + months + 1, 0).getDate();
+  return toIsoDate(new Date(y, m - 1 + months, Math.min(d, lastDay)));
+}
+
+function lastDayOfMonth(year: number, month: number): string {
+  return toIsoDate(new Date(year, month, 0));
+}
+
+/** Dates of a repeating event that fall within [from, to], starting at `start` and ending at `until`. */
+export function occurrencesBetween(
+  start: string,
+  recurrence: 'weekly' | 'month-end' | 'mid-and-month-end' | keyof typeof RECURRENCE_MONTHS,
+  from: string,
+  to: string,
+  until: string | null = null,
+): string[] {
+  const last = until && until < to ? until : to;
+  const dates: string[] = [];
+  if (recurrence === 'month-end' || recurrence === 'mid-and-month-end') {
+    const first = start > from ? start : from;
+    let [year, month] = first.split('-').map(Number);
+    for (let monthStart = `${first.slice(0, 7)}-01`; monthStart <= last; ) {
+      const candidates = recurrence === 'month-end' ? [] : [`${monthStart.slice(0, 7)}-15`];
+      candidates.push(lastDayOfMonth(year, month));
+      for (const date of candidates) if (date >= first && date <= last) dates.push(date);
+      [year, month] = month === 12 ? [year + 1, 1] : [year, month + 1];
+      monthStart = `${year}-${String(month).padStart(2, '0')}-01`;
+    }
+    return dates;
+  }
+  if (recurrence === 'weekly') {
+    let n = Math.max(0, Math.floor(daysBetween(start, from) / 7));
+    for (let date = addDays(start, n * 7); date <= last; date = addDays(start, ++n * 7)) {
+      if (date >= from) dates.push(date);
+    }
+    return dates;
+  }
+  const step = RECURRENCE_MONTHS[recurrence];
+  const [sy, sm] = start.split('-').map(Number);
+  const [fy, fm] = from.split('-').map(Number);
+  let n = Math.max(0, Math.floor(((fy - sy) * 12 + (fm - sm)) / step) - 1);
+  for (let date = addMonths(start, n * step); date <= last; date = addMonths(start, ++n * step)) {
+    if (date >= from) dates.push(date);
+  }
+  return dates;
+}

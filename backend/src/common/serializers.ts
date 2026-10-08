@@ -1,5 +1,5 @@
 import { computeActivityStatus } from './date.util.js';
-import type { Activity, Project, User } from '../entities/index.js';
+import type { Activity, Notice, Project, User } from '../entities/index.js';
 
 export function serializeUser(user: User) {
   return {
@@ -10,6 +10,7 @@ export function serializeUser(user: User) {
     jobTitle: user.jobTitle ?? null,
     isActive: user.isActive,
     mustChangePassword: user.mustChangePassword,
+    canPostNotices: user.role === 'admin' || user.canPostNotices,
     projects: user.projects.isInitialized()
       ? user.projects.getItems().map((p) => ({ id: p.id, name: p.name, code: p.code }))
       : [],
@@ -46,5 +47,21 @@ export function serializeActivity(activity: Activity) {
       : [],
     outcome: activity.outcome ?? null,
     createdAt: activity.createdAt,
+  };
+}
+
+/** `date` overrides the stored date with a specific occurrence of a recurring deadline. */
+export function serializeNotice(notice: Notice, date = notice.date) {
+  return {
+    id: notice.id,
+    kind: notice.kind,
+    title: notice.title,
+    details: notice.details ?? null,
+    date,
+    time: notice.time ?? null,
+    recurrence: notice.recurrence ?? null,
+    recurUntil: notice.recurUntil ?? null,
+    author: serializeStaffRef(notice.author),
+    createdAt: notice.createdAt,
   };
 }

@@ -15,6 +15,8 @@ export const UserSchema = defineEntity({
     jobTitle: p.string().nullable(),
     isActive: p.boolean().default(true),
     mustChangePassword: p.boolean().default(false),
+    /** Lets staff post deadlines and announcements on the board; admins always can. */
+    canPostNotices: p.boolean().default(false),
     projects: () => p.manyToMany(Project).owner(),
     createdAt: p.datetime().onCreate(() => new Date()),
   },

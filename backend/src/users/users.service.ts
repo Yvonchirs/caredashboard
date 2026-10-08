@@ -28,6 +28,7 @@ export class UsersService {
       role: dto.role,
       passwordHash: await hashPassword(temporaryPassword),
       mustChangePassword: true,
+      canPostNotices: dto.canPostNotices ?? false,
     });
     if (dto.projectIds) user.projects.set(await this.loadProjects(dto.projectIds));
     await this.flushUnique();
@@ -45,6 +46,7 @@ export class UsersService {
     if (dto.jobTitle !== undefined) user.jobTitle = dto.jobTitle.trim() || null;
     if (dto.role !== undefined) user.role = dto.role;
     if (dto.isActive !== undefined) user.isActive = dto.isActive;
+    if (dto.canPostNotices !== undefined) user.canPostNotices = dto.canPostNotices;
     if (dto.projectIds !== undefined) user.projects.set(await this.loadProjects(dto.projectIds));
 
     await this.flushUnique();

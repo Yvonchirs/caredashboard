@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { AutoRefresh } from "@/components/board/auto-refresh";
 import { BoardToolbar } from "@/components/board/board-toolbar";
+import { NoticesPanel } from "@/components/board/notices-panel";
 import { ProjectColumn } from "@/components/board/project-column";
 import { StatsStrip } from "@/components/board/stats-strip";
 import { WeekStrip } from "@/components/board/week-strip";
@@ -11,7 +12,7 @@ import { buttonStyles } from "@/components/ui";
 import { api } from "@/lib/api";
 import { isIsoDate, rangeFor, todayIso, type BoardView } from "@/lib/dates";
 import { getCurrentUser } from "@/lib/session";
-import type { Dashboard } from "@/lib/types";
+import type { Dashboard, Notice } from "@/lib/types";
 
 export default async function BoardPage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
@@ -20,8 +21,9 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
   const date = isIsoDate(params.date) ? params.date : today;
   const { from, to } = rangeFor(view, date);
 
-  const [data, user] = await Promise.all([
+  const [data, notices, user] = await Promise.all([
     api<Dashboard>(`/dashboard?from=${from}&to=${to}`, { auth: false }).catch(() => null),
+    api<Notice[]>(`/notices?from=${from}&to=${to}`, { auth: false }).catch(() => []),
     getCurrentUser().catch(() => null),
   ]);
 
@@ -37,32 +39,45 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
         </div>
       </section>
 
-      <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-10 sm:px-6 lg:px-10">
-        {!data ? (
-          <EmptyState title="The board is unavailable" body="We couldn't reach the activity service. Please try again in a moment." />
-        ) : data.projects.length === 0 ? (
-          <EmptyState
-            title={view === "day" ? "Nothing logged for this day" : "Nothing logged this week"}
-            body="When staff log their field activities, they'll appear here grouped by project."
-            action={
-              user && (
-                <Link href="/workspace/new" className={buttonStyles()}>
-                  Log an activity
-                  <ArrowRight aria-hidden />
-                </Link>
-              )
-            }
+      <main className="mx-auto grid w-full max-w-[1600px] flex-1 items-start gap-x-8 gap-y-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:px-10 2xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <div className="lg:sticky lg:top-6 lg:order-last">
+          <NoticesPanel
+            notices={notices}
+            showDates={view === "week"}
+            referenceDate={view === "day" ? date : today < from ? from : today > to ? to : today}
+            canPost={user?.canPostNotices ?? false}
           />
-        ) : (
-          <div className="space-y-10">
-            <div className="grid items-start gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-4">
+        </div>
+
+        <div className="min-w-0">
+          {!data ? (
+            <EmptyState title="The board is unavailable" body="We couldn't reach the activity service. Please try again in a moment." />
+          ) : data.projects.length === 0 ? (
+            <EmptyState
+              title={view === "day" ? "Nothing logged for this day" : "Nothing logged this week"}
+              body="When staff log their field activities, they'll appear here grouped by project."
+              action={
+                user && (
+                  <Link href="/workspace/new" className={buttonStyles()}>
+                    Log an activity
+                    <ArrowRight aria-hidden />
+                  </Link>
+                )
+              }
+            />
+          ) : (
+            <div className="grid items-start gap-x-6 gap-y-10 md:grid-cols-2 2xl:grid-cols-3">
               {data.projects.map((project) => (
                 <ProjectColumn key={project.id} project={project} view={view} from={from} today={today} />
               ))}
             </div>
-            <AutoRefresh />
-          </div>
-        )}
+          )}
+          {data && (
+            <div className="mt-10">
+              <AutoRefresh />
+            </div>
+          )}
+        </div>
       </main>
     </>
   );

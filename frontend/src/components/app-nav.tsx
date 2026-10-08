@@ -5,18 +5,19 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import type { UserRole } from "@/lib/types";
 
-const LINKS: { href: string; label: string; roles?: UserRole[] }[] = [
+const LINKS: { href: string; label: string; roles?: UserRole[]; notices?: boolean }[] = [
   { href: "/", label: "Board" },
   { href: "/workspace", label: "My activities" },
+  { href: "/notices", label: "Deadlines & notices", notices: true },
   { href: "/admin/projects", label: "Projects", roles: ["admin"] },
   { href: "/admin/users", label: "Users", roles: ["admin"] },
 ];
 
-export function AppNav({ role }: { role: UserRole }) {
+export function AppNav({ role, canPostNotices }: { role: UserRole; canPostNotices: boolean }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Main" className="-mb-px flex gap-6 overflow-x-auto">
-      {LINKS.filter((link) => !link.roles || link.roles.includes(role)).map((link) => {
+      {LINKS.filter((link) => (!link.roles || link.roles.includes(role)) && (!link.notices || canPostNotices)).map((link) => {
         const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
         return (
           <Link

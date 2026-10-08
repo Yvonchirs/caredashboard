@@ -15,6 +15,8 @@ export interface User {
   jobTitle: string | null;
   isActive: boolean;
   mustChangePassword: boolean;
+  /** Always true for admins. */
+  canPostNotices: boolean;
   projects: ProjectRef[];
   createdAt: string;
 }
@@ -55,6 +57,32 @@ export interface Activity {
   collaborators: StaffRef[];
   photos: ActivityPhoto[];
   outcome: string | null;
+  createdAt: string;
+}
+
+export type NoticeKind = "deadline" | "announcement";
+export type NoticeRecurrence = "weekly" | "monthly" | "month-end" | "mid-and-month-end" | "quarterly" | "yearly";
+
+export const RECURRENCE_LABELS: Record<NoticeRecurrence, string> = {
+  weekly: "Repeats weekly",
+  monthly: "Repeats monthly",
+  "month-end": "Repeats on the last day of each month",
+  "mid-and-month-end": "Repeats on the 15th and last day of each month",
+  quarterly: "Repeats quarterly",
+  yearly: "Repeats yearly",
+};
+
+export interface Notice {
+  id: number;
+  kind: NoticeKind;
+  title: string;
+  details: string | null;
+  /** For recurring deadlines, the date of this occurrence. */
+  date: string;
+  time: string | null;
+  recurrence: NoticeRecurrence | null;
+  recurUntil: string | null;
+  author: StaffRef;
   createdAt: string;
 }
 

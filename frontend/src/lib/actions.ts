@@ -35,7 +35,8 @@ export async function login(_state: FormState, formData: FormData): Promise<Form
   (await cookies()).set(SESSION_COOKIE, result.accessToken, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    // COOKIE_SECURE=false allows logins when production is served over plain HTTP.
+    secure: process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false",
     path: "/",
     maxAge: 12 * 60 * 60,
   });
@@ -175,6 +176,7 @@ function userBody(formData: FormData) {
     jobTitle: text(formData, "jobTitle"),
     role: text(formData, "role"),
     projectIds: ids(formData, "projectIds"),
+    canPostNotices: formData.get("canPostNotices") === "on",
   };
 }
 
@@ -221,4 +223,31 @@ export async function resetUserPassword(id: number): Promise<FormState> {
   } catch (error) {
     return { error: errorMessage(error) };
   }
+}
+
+export async function createNotice(_state: FormState, formData: FormData): Promise<FormState> {
+  const kind = text(formData, "kind");
+  try {
+    await api("/notices", {
+      method: "POST",
+      body: {
+        kind,
+        title: text(formData, "title"),
+        details: text(formData, "details") || undefined,
+        date: text(formData, "date"),
+        time: (kind === "deadline" && text(formData, "time")) || undefined,
+        recurrence: (kind === "deadline" && text(formData, "recurrence")) || undefined,
+        recurUntil: (kind === "deadline" && text(formData, "recurrence") && text(formData, "recurUntil")) || undefined,
+      },
+    });
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
+  revalidatePath("/", "layout");
+  return { success: kind === "deadline" ? "Deadline posted." : "Announcement posted." };
+}
+
+export async function deleteNotice(id: number) {
+  await api(`/notices/${id}`, { method: "DELETE" });
+  revalidatePath("/", "layout");
 }
