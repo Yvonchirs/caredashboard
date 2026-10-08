@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { addDays, formatRange, type BoardView } from "@/lib/dates";
 import { DateJump } from "./date-jump";
+import { FullscreenToggle } from "./fullscreen-toggle";
 
 function href(view: BoardView, date: string) {
   return `/?view=${view}&date=${date}`;
@@ -90,6 +91,10 @@ export function BoardToolbar({
         <DateJump
           view={view}
           date={date}
+          className={cn(pill, "cursor-pointer gap-2 border border-white/30 px-4 text-white hover:border-white hover:bg-white/10 [&_svg]:size-4")}
+        />
+
+        <FullscreenToggle
           className={cn(pill, "cursor-pointer gap-2 border border-white/30 px-4 text-white hover:border-white hover:bg-white/10 [&_svg]:size-4")}
         />
       </nav>
