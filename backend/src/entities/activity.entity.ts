@@ -5,7 +5,7 @@ import { User } from './user.entity.js';
 
 export const ACTIVITY_STATUSES = ['pending', 'live', 'completed'] as const;
 export type ActivityStatus = (typeof ACTIVITY_STATUSES)[number];
-// Status is not stored: it is derived from date/startTime, see common/date.util.ts#computeActivityStatus.
+// Status is not stored: it is derived from the dates and times, see common/date.util.ts#computeActivityStatus.
 
 export const ActivitySchema = defineEntity({
   name: 'Activity',
@@ -13,8 +13,10 @@ export const ActivitySchema = defineEntity({
     id: p.integer().primary(),
     title: p.string(),
     description: p.text().nullable(),
-    /** Calendar day in YYYY-MM-DD form. */
+    /** First calendar day in YYYY-MM-DD form. */
     date: p.string().length(10).index(),
+    /** Last calendar day for multi-day activities; null when the activity ends on `date`. */
+    endDate: p.string().length(10).nullable().index(),
     startTime: p.string().length(5).nullable(),
     endTime: p.string().length(5).nullable(),
     location: p.string(),

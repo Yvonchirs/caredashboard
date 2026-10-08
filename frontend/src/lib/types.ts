@@ -44,6 +44,8 @@ export interface Activity {
   title: string;
   description: string | null;
   date: string;
+  /** Same as `date` for single-day activities. */
+  endDate: string;
   startTime: string | null;
   endTime: string | null;
   location: string;

@@ -4,13 +4,27 @@ import type { Activity, DashboardProject } from "@/lib/types";
 import { ActivityCard } from "./activity-card";
 import { projectColor } from "./project-colors";
 
-function groupByDay(activities: Activity[]) {
+/** Groups by first visible day, so multi-day activities that began earlier sit under the range's first day. */
+function groupByDay(activities: Activity[], from: string) {
   const groups = new Map<string, Activity[]>();
-  for (const activity of activities) groups.set(activity.date, [...(groups.get(activity.date) ?? []), activity]);
-  return [...groups.entries()];
+  for (const activity of activities) {
+    const day = activity.date < from ? from : activity.date;
+    groups.set(day, [...(groups.get(day) ?? []), activity]);
+  }
+  return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
 }
 
-export function ProjectColumn({ project, view, today }: { project: DashboardProject; view: BoardView; today: string }) {
+export function ProjectColumn({
+  project,
+  view,
+  from,
+  today,
+}: {
+  project: DashboardProject;
+  view: BoardView;
+  from: string;
+  today: string;
+}) {
   const color = projectColor(project.id);
   const staffCount = new Set(project.activities.map((a) => a.author.id)).size;
 
@@ -51,7 +65,7 @@ export function ProjectColumn({ project, view, today }: { project: DashboardProj
           </ul>
         ) : (
           <div className="space-y-5">
-            {groupByDay(project.activities).map(([day, activities]) => (
+            {groupByDay(project.activities, from).map(([day, activities]) => (
               <div key={day}>
                 <h3 className="sticky top-0 z-10 mb-2 flex items-center gap-2 bg-canvas py-1.5 text-xs font-black tracking-wide text-ink uppercase">
                   {formatWeekday(day)} {formatShortDate(day)}

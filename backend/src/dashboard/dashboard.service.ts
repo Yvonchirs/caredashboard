@@ -1,6 +1,6 @@
 import { EntityManager } from '@mikro-orm/sqlite';
 import { Injectable } from '@nestjs/common';
-import { assertRange } from '../activities/activities.service.js';
+import { assertRange, overlapping } from '../activities/activities.service.js';
 import { serializeActivity } from '../common/serializers.js';
 import { Activity } from '../entities/index.js';
 import type { DashboardDto, DashboardProjectDto } from './dashboard.dto.js';
@@ -13,7 +13,7 @@ export class DashboardService {
     assertRange(from, to);
     const activities = await this.em.find(
       Activity,
-      { date: { $gte: from, $lte: to }, project: { isActive: true } },
+      { $and: [overlapping(from, to), { project: { isActive: true } }] },
       { populate: ['project', 'author', 'collaborators', 'photos'], orderBy: { date: 'asc', startTime: 'asc', id: 'asc' } },
     );
 

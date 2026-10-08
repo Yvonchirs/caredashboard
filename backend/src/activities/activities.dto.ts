@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ArrayUnique, IsArray, IsInt, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
-import { ISO_DATE } from '../common/date.util.js';
+import { ISO_DATE, MAX_ACTIVITY_DAYS } from '../common/date.util.js';
 import { ACTIVITY_STATUSES, type ActivityStatus } from '../entities/index.js';
 import { ProjectRefDto, StaffRefDto } from '../users/users.dto.js';
 
@@ -17,7 +17,8 @@ export class ActivityDto {
   @ApiProperty() id: number;
   @ApiProperty() title: string;
   @ApiProperty({ type: String, nullable: true }) description: string | null;
-  @ApiProperty({ example: '2026-09-23' }) date: string;
+  @ApiProperty({ example: '2026-09-23', description: 'First day' }) date: string;
+  @ApiProperty({ example: '2026-09-25', description: 'Last day (same as date for single-day activities)' }) endDate: string;
   @ApiProperty({ type: String, nullable: true, example: '09:30' }) startTime: string | null;
   @ApiProperty({ type: String, nullable: true, example: '11:00' }) endTime: string | null;
   @ApiProperty() location: string;
@@ -47,16 +48,24 @@ export class CreateActivityDto {
   @MaxLength(2000)
   description?: string;
 
-  @ApiProperty({ example: '2026-09-23', description: 'YYYY-MM-DD' })
+  @ApiProperty({ example: '2026-09-23', description: 'First day, YYYY-MM-DD' })
   @Matches(ISO_DATE, { message: 'date must be in YYYY-MM-DD format' })
   date: string;
 
-  @ApiPropertyOptional({ example: '09:30', description: 'HH:mm' })
+  @ApiPropertyOptional({
+    example: '2026-09-25',
+    description: `Last day for multi-day activities, YYYY-MM-DD; omit or match date for a single day (at most ${MAX_ACTIVITY_DAYS} days)`,
+  })
+  @IsOptional()
+  @Matches(ISO_DATE, { message: 'endDate must be in YYYY-MM-DD format' })
+  endDate?: string;
+
+  @ApiPropertyOptional({ example: '09:30', description: 'HH:mm on the first day' })
   @IsOptional()
   @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'startTime must be in HH:mm format' })
   startTime?: string;
 
-  @ApiPropertyOptional({ example: '11:00', description: 'HH:mm, must be after startTime when both are set' })
+  @ApiPropertyOptional({ example: '11:00', description: 'HH:mm on the last day; must be after startTime for single-day activities' })
   @IsOptional()
   @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'endTime must be in HH:mm format' })
   endTime?: string;

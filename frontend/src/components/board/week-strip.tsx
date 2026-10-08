@@ -6,7 +6,9 @@ import type { Dashboard } from "@/lib/types";
 export function WeekStrip({ data, today }: { data: Dashboard; today: string }) {
   const counts = new Map<string, number>();
   for (const project of data.projects) {
-    for (const activity of project.activities) counts.set(activity.date, (counts.get(activity.date) ?? 0) + 1);
+    for (const activity of project.activities) {
+      for (const day of daysInRange(activity.date, activity.endDate)) counts.set(day, (counts.get(day) ?? 0) + 1);
+    }
   }
   const max = Math.max(1, ...counts.values());
 

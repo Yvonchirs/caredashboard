@@ -1,9 +1,9 @@
 "use client";
 
-import { Clock, MapPin } from "lucide-react";
+import { CalendarRange, Clock, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { formatLongDate } from "@/lib/dates";
+import { formatLongDate, formatRange } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 import type { Activity } from "@/lib/types";
 import { Dialog } from "../dialog";
@@ -50,6 +50,12 @@ export function ActivityCard({ activity }: { activity: Activity }) {
         <div className="p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex min-w-0 flex-wrap items-center gap-3 text-xs">
+              {activity.endDate !== activity.date && (
+                <span className="inline-flex items-center gap-1 font-bold text-brand-dark tabular">
+                  <CalendarRange className="size-3.5" aria-hidden />
+                  {formatRange(activity.date, activity.endDate)}
+                </span>
+              )}
               {activity.startTime && (
                 <span className="inline-flex items-center gap-1 font-bold text-brand-dark tabular">
                   <Clock className="size-3.5" aria-hidden />
@@ -130,13 +136,26 @@ function ActivityDetails({ activity }: { activity: Activity }) {
         <div>
           <dt className="text-xs font-bold tracking-wide text-ink-subtle uppercase">Date</dt>
           <dd className="mt-0.5 font-medium">
-            {formatLongDate(activity.date)}
-            {activity.startTime && (
-              <span className="tabular">
-                {" "}
-                · {activity.startTime}
-                {activity.endTime && `–${activity.endTime}`}
-              </span>
+            {activity.endDate === activity.date ? (
+              <>
+                {formatLongDate(activity.date)}
+                {activity.startTime && (
+                  <span className="tabular">
+                    {" "}
+                    · {activity.startTime}
+                    {activity.endTime && `–${activity.endTime}`}
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                {formatLongDate(activity.date)}
+                {activity.startTime && <span className="tabular"> · {activity.startTime}</span>}
+                <span className="block text-ink-muted">
+                  to {formatLongDate(activity.endDate)}
+                  {activity.endTime && <span className="tabular"> · {activity.endTime}</span>}
+                </span>
+              </>
             )}
           </dd>
         </div>

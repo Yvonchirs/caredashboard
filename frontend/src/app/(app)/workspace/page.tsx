@@ -1,4 +1,4 @@
-import { Camera, ChevronLeft, ChevronRight, Clock, MapPin, Plus } from "lucide-react";
+import { CalendarRange, Camera, ChevronLeft, ChevronRight, Clock, MapPin, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Alert, Badge, buttonStyles, PageHeader } from "@/components/ui";
@@ -95,10 +95,17 @@ export default async function WorkspacePage({ searchParams }: PageProps<"/worksp
                   <StatusBadge status={activity.status} />
                 </div>
                 <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-subtle">
+                  {activity.endDate !== activity.date && (
+                    <span className="inline-flex items-center gap-1 tabular">
+                      <CalendarRange className="size-3.5" aria-hidden />
+                      {formatRange(activity.date, activity.endDate)}
+                    </span>
+                  )}
                   {activity.startTime && (
                     <span className="inline-flex items-center gap-1 tabular">
                       <Clock className="size-3.5" aria-hidden />
                       {activity.startTime}
+                      {activity.endTime && `–${activity.endTime}`}
                     </span>
                   )}
                   <span className="inline-flex items-center gap-1">

@@ -56,10 +56,11 @@ export class ActivityReportService {
 
     field('Status', 'Completed');
 
-    let dateLine = formatDate(activity.date);
-    if (activity.startTime) {
-      dateLine += ` · ${activity.startTime}`;
-      if (activity.endTime) dateLine += ` – ${activity.endTime}`;
+    let dateLine = formatDate(activity.date) + (activity.startTime ? ` · ${activity.startTime}` : '');
+    if (activity.endDate) {
+      dateLine += ` – ${formatDate(activity.endDate)}${activity.endTime ? ` · ${activity.endTime}` : ''}`;
+    } else if (activity.startTime && activity.endTime) {
+      dateLine += ` – ${activity.endTime}`;
     }
     field('Date', dateLine);
     field('Location', activity.location);

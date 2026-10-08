@@ -31,10 +31,11 @@ export function serializeActivity(activity: Activity) {
     title: activity.title,
     description: activity.description ?? null,
     date: activity.date,
+    endDate: activity.endDate ?? activity.date,
     startTime: activity.startTime ?? null,
     endTime: activity.endTime ?? null,
     location: activity.location,
-    status: computeActivityStatus(activity.date, activity.startTime ?? null, activity.endTime ?? null),
+    status: computeActivityStatus(activity),
     project: serializeProjectRef(activity.project),
     author: serializeStaffRef(activity.author),
     collaborators: activity.collaborators.isInitialized()

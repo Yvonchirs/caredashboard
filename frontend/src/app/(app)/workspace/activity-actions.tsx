@@ -2,6 +2,7 @@
 
 import { Camera, ClipboardCheck, FileDown, ImagePlus, Pencil, Trash2, X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { ScheduleFields, StaffPicker } from "@/components/activity-fields";
 import { Dialog } from "@/components/dialog";
 import { SubmitButton } from "@/components/submit-button";
 import { Alert, Button, buttonStyles, Field, Input, Select, Textarea } from "@/components/ui";
@@ -293,7 +294,6 @@ function EditActivityForm({
     if (result?.success) onDone();
     return result;
   }, undefined);
-  const assigned = new Set(activity.collaborators.map((person) => person.id));
 
   return (
     <form action={action} className="space-y-5">
@@ -313,21 +313,7 @@ function EditActivityForm({
         <Input id="edit-title" name="title" required minLength={3} maxLength={160} defaultValue={activity.title} />
       </Field>
 
-      <div className="grid gap-5 sm:grid-cols-3">
-        <Field label="Date" htmlFor="edit-date">
-          <Input id="edit-date" name="date" type="date" required defaultValue={activity.date} />
-        </Field>
-        <Field label="Start time" htmlFor="edit-startTime" optional>
-          <Input id="edit-startTime" name="startTime" type="time" defaultValue={activity.startTime ?? ""} />
-        </Field>
-        <Field label="End time" htmlFor="edit-endTime" optional>
-          <Input id="edit-endTime" name="endTime" type="time" defaultValue={activity.endTime ?? ""} />
-        </Field>
-      </div>
-      <p className="-mt-3 text-xs text-ink-subtle">
-        Status is set automatically: pending beforehand, live from the start time (or from midnight if none is given) until the
-        end time (or midnight if none is given), then completed.
-      </p>
+      <ScheduleFields idPrefix="edit-" defaults={activity} />
 
       <Field label="Location" htmlFor="edit-location">
         <Input id="edit-location" name="location" required minLength={2} maxLength={160} defaultValue={activity.location} />
@@ -337,35 +323,7 @@ function EditActivityForm({
         <Textarea id="edit-description" name="description" maxLength={2000} defaultValue={activity.description ?? ""} />
       </Field>
 
-      <fieldset>
-        <legend className="text-sm font-bold">
-          Other staff involved <span className="font-normal text-ink-subtle">(optional)</span>
-        </legend>
-        {colleagues.length > 0 ? (
-          <div className="mt-3 grid max-h-56 gap-1 overflow-y-auto rounded-md border border-line p-1.5 sm:grid-cols-2">
-            {colleagues.map((person) => (
-              <label
-                key={person.id}
-                className="flex cursor-pointer items-start gap-2.5 rounded-md px-2.5 py-2 text-sm hover:bg-ink-50"
-              >
-                <input
-                  type="checkbox"
-                  name="collaboratorIds"
-                  value={person.id}
-                  defaultChecked={assigned.has(person.id)}
-                  className="mt-0.5 size-4 accent-brand"
-                />
-                <span className="min-w-0">
-                  <span className="block leading-snug font-medium">{person.name}</span>
-                  {person.jobTitle && <span className="block text-xs text-ink-subtle">{person.jobTitle}</span>}
-                </span>
-              </label>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-2 text-xs text-ink-subtle">No other staff accounts yet.</p>
-        )}
-      </fieldset>
+      <StaffPicker colleagues={colleagues} initial={activity.collaborators.map((person) => person.id)} />
 
       <div className="flex justify-end gap-2 border-t border-line pt-5">
         <Button variant="secondary" onClick={onDone}>

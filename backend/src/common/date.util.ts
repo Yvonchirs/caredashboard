@@ -1,4 +1,5 @@
 export const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+export const MAX_ACTIVITY_DAYS = 31;
 
 export function toIsoDate(date: Date): string {
   const y = date.getFullYear();
@@ -33,21 +34,25 @@ export function nowInAppTz(now = new Date()): { date: string; time: string } {
   return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
 }
 
+export interface ActivitySchedule {
+  date: string;
+  endDate?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+}
+
 /**
- * Derives an activity's status from its date and optional start/end time — never stored, always computed.
- * Before the date: pending. On the date, from the start time (or from the start of the day when no
- * start time is set) until the end time (or midnight when no end time is set): live. After that: completed.
+ * Derives an activity's status from its schedule — never stored, always computed.
+ * It is live from the start time on the first day (or that day's midnight when no start time is set)
+ * until the end time on the last day (or midnight when no end time is set); pending before, completed after.
  */
 export function computeActivityStatus(
-  date: string,
-  startTime: string | null,
-  endTime: string | null = null,
+  { date, endDate, startTime, endTime }: ActivitySchedule,
   now = new Date(),
 ): 'pending' | 'live' | 'completed' {
   const { date: today, time: nowTime } = nowInAppTz(now);
-  if (date < today) return 'completed';
-  if (date > today) return 'pending';
-  if (endTime && nowTime > endTime) return 'completed';
-  if (!startTime || startTime <= nowTime) return 'live';
-  return 'pending';
+  const lastDay = endDate ?? date;
+  if (today < date || (today === date && startTime && nowTime < startTime)) return 'pending';
+  if (today > lastDay || (today === lastDay && endTime && nowTime > endTime)) return 'completed';
+  return 'live';
 }

@@ -57,7 +57,7 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
           <div className="space-y-10">
             <div className="grid items-start gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-4">
               {data.projects.map((project) => (
-                <ProjectColumn key={project.id} project={project} view={view} today={today} />
+                <ProjectColumn key={project.id} project={project} view={view} from={from} today={today} />
               ))}
             </div>
             <AutoRefresh />

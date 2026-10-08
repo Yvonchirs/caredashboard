@@ -139,5 +139,20 @@ export class DatabaseSeeder extends Seeder {
         n++;
       }
     }
+
+    // A multi-day workshop spanning Tuesday to Thursday of the current week.
+    const [trainer, ...cofacilitators] = staff.filter((member) => member.projects.includes('CRA'));
+    const workshop = em.create(Activity, {
+      title: 'Climate-smart farming field school',
+      description: 'Three-day residential training for lead farmers on terracing, mulching and drought-tolerant seed.',
+      date: addDays(monday, 1),
+      endDate: addDays(monday, 3),
+      startTime: '08:30',
+      endTime: '16:00',
+      location: 'Kibeho Sector, Nyaruguru',
+      project: projects.get('CRA')!,
+      author: trainer.user,
+    });
+    workshop.collaborators.set(cofacilitators.map((member) => member.user));
   }
 }

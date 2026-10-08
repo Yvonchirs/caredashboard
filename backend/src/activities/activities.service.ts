@@ -1,6 +1,6 @@
-import { EntityManager } from '@mikro-orm/sqlite';
+import { EntityManager, type FilterQuery } from '@mikro-orm/sqlite';
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { computeActivityStatus, daysBetween } from '../common/date.util.js';
+import { computeActivityStatus, daysBetween, MAX_ACTIVITY_DAYS } from '../common/date.util.js';
 import { serializeActivity } from '../common/serializers.js';
 import { Activity, Photo, Project, User } from '../entities/index.js';
 import type { CreateActivityDto, UpdateActivityDto } from './activities.dto.js';
@@ -16,7 +16,7 @@ export class ActivitiesService {
     assertRange(from, to);
     const activities = await this.em.find(
       Activity,
-      { $or: [{ author: user }, { collaborators: user }], date: { $gte: from, $lte: to } },
+      { $and: [{ $or: [{ author: user }, { collaborators: user }] }, overlapping(from, to)] },
       { populate: ACTIVITY_POPULATE, orderBy: { date: 'desc', startTime: 'asc' } },
     );
     return activities.map(serializeActivity);
@@ -24,13 +24,15 @@ export class ActivitiesService {
 
   async create(user: User, dto: CreateActivityDto, files: Express.Multer.File[]) {
     try {
-      assertTimeOrder(dto.startTime ?? null, dto.endTime ?? null);
+      const endDate = normalizeEndDate(dto.date, dto.endDate);
+      assertSchedule(dto.date, endDate, dto.startTime ?? null, dto.endTime ?? null);
       const project = await this.resolveProject(user, dto.projectId);
       const collaborators = await this.resolveCollaborators(dto.collaboratorIds, user.id);
       const activity = this.em.create(Activity, {
         title: dto.title.trim(),
         description: dto.description?.trim() || null,
         date: dto.date,
+        endDate,
         startTime: dto.startTime || null,
         endTime: dto.endTime || null,
         location: dto.location.trim(),
@@ -50,27 +52,30 @@ export class ActivitiesService {
 
   async update(user: User, id: number, dto: UpdateActivityDto) {
     const activity = await this.findEditable(user, id);
-    if (user.role !== 'admin' && computeActivityStatus(activity.date, activity.startTime ?? null, activity.endTime ?? null) !== 'pending') {
+    if (user.role !== 'admin' && computeActivityStatus(activity) !== 'pending') {
       throw new ForbiddenException('This activity has already started and can no longer be edited');
     }
     if (dto.projectId !== undefined) activity.project = await this.resolveProject(user, dto.projectId);
     if (dto.title !== undefined) activity.title = dto.title.trim();
     if (dto.description !== undefined) activity.description = dto.description.trim() || null;
     if (dto.date !== undefined) activity.date = dto.date;
+    if (dto.date !== undefined || dto.endDate !== undefined) {
+      activity.endDate = normalizeEndDate(activity.date, dto.endDate ?? activity.endDate);
+    }
     if (dto.startTime !== undefined) activity.startTime = dto.startTime || null;
     if (dto.endTime !== undefined) activity.endTime = dto.endTime || null;
     if (dto.location !== undefined) activity.location = dto.location.trim();
     if (dto.collaboratorIds !== undefined) {
       activity.collaborators.set(await this.resolveCollaborators(dto.collaboratorIds, activity.author.id));
     }
-    assertTimeOrder(activity.startTime ?? null, activity.endTime ?? null);
+    assertSchedule(activity.date, activity.endDate ?? null, activity.startTime ?? null, activity.endTime ?? null);
     await this.em.flush();
     return serializeActivity(activity);
   }
 
   async setOutcome(user: User, id: number, outcome: string) {
     const activity = await this.findEditable(user, id);
-    if (user.role !== 'admin' && computeActivityStatus(activity.date, activity.startTime ?? null, activity.endTime ?? null) !== 'completed') {
+    if (user.role !== 'admin' && computeActivityStatus(activity) !== 'completed') {
       throw new ForbiddenException('The outcome can only be recorded once the activity is completed');
     }
     activity.outcome = outcome.trim();
@@ -82,9 +87,9 @@ export class ActivitiesService {
     if (!files.length) throw new BadRequestException('Select at least one photo');
     try {
       const activity = await this.findEditable(user, id);
-      if (user.role !== 'admin' && computeActivityStatus(activity.date, activity.startTime ?? null, activity.endTime ?? null) !== 'live') {
+      if (user.role !== 'admin' && computeActivityStatus(activity) !== 'live') {
         throw new ForbiddenException(
-          'Photos can only be added while the activity is live — from its start time until the end of that day',
+          'Photos can only be added while the activity is live — from its start until its end',
         );
       }
       if (activity.photos.length + files.length > MAX_PHOTOS) {
@@ -109,7 +114,7 @@ export class ActivitiesService {
   /** Loads a completed activity for its downloadable report. Public: no author/admin restriction. */
   async findForReport(id: number) {
     const activity = await this.em.findOneOrFail(Activity, id, { populate: ACTIVITY_POPULATE });
-    if (computeActivityStatus(activity.date, activity.startTime ?? null, activity.endTime ?? null) !== 'completed') {
+    if (computeActivityStatus(activity) !== 'completed') {
       throw new BadRequestException('The report is only available once the activity is completed');
     }
     return activity;
@@ -148,8 +153,25 @@ export class ActivitiesService {
   }
 }
 
-export function assertTimeOrder(startTime: string | null, endTime: string | null) {
-  if (startTime && endTime && endTime <= startTime) {
+/** Activities that run on at least one day of the range, including multi-day ones that started earlier. */
+export function overlapping(from: string, to: string): FilterQuery<Activity> {
+  return {
+    date: { $lte: to },
+    $or: [{ endDate: { $gte: from } }, { endDate: null, date: { $gte: from } }],
+  };
+}
+
+/** Stores null for single-day activities so `date` stays the only source of truth for them. */
+function normalizeEndDate(date: string, endDate: string | null | undefined) {
+  return endDate && endDate !== date ? endDate : null;
+}
+
+export function assertSchedule(date: string, endDate: string | null, startTime: string | null, endTime: string | null) {
+  if (endDate) {
+    const span = daysBetween(date, endDate);
+    if (span < 0) throw new BadRequestException('The end date must be on or after the start date');
+    if (span >= MAX_ACTIVITY_DAYS) throw new BadRequestException(`An activity can last at most ${MAX_ACTIVITY_DAYS} days`);
+  } else if (startTime && endTime && endTime <= startTime) {
     throw new BadRequestException('End time must be after start time');
   }
 }
