@@ -13,7 +13,7 @@ export function WeekStrip({ data, today }: { data: Dashboard; today: string }) {
   const max = Math.max(1, ...counts.values());
 
   return (
-    <nav aria-label="Days in this week" className="grid grid-cols-7 gap-1.5 sm:gap-2">
+    <nav data-tv-strip aria-label="Days in this week" className="grid grid-cols-7 gap-1.5 sm:gap-2">
       {daysInRange(data.from, data.to).map((day) => {
         const count = counts.get(day) ?? 0;
         const isToday = day === today;
@@ -31,7 +31,7 @@ export function WeekStrip({ data, today }: { data: Dashboard; today: string }) {
               {formatWeekday(day)}
             </span>
             <span className="mt-0.5 block font-headline text-2xl tabular sm:text-3xl">{formatDayNumber(day)}</span>
-            <span className={cn("mt-2 hidden h-1 overflow-hidden rounded-full sm:block", isToday ? "bg-ink-100" : "bg-white/10")}>
+            <span data-tv-hide className={cn("mt-2 hidden h-1 overflow-hidden rounded-full sm:block", isToday ? "bg-ink-100" : "bg-white/10")}>
               <span className="block h-full rounded-full bg-brand" style={{ width: `${(count / max) * 100}%` }} />
             </span>
             <span className={cn("mt-1.5 block text-[11px] tabular", isToday ? "text-ink-muted" : "text-white/60")}>

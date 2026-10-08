@@ -56,7 +56,7 @@ export function ProjectColumn({
         </p>
       </header>
 
-      <div className="-mx-1 max-h-[72vh] overflow-y-auto px-1 pb-1 [scrollbar-width:thin]">
+      <div data-column-scroll className="-mx-1 max-h-[72vh] overflow-y-auto px-1 pb-1 [scrollbar-width:thin]">
         {view === "day" ? (
           <ul className="space-y-3">
             {project.activities.map((activity) => (

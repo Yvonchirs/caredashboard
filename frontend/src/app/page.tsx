@@ -6,6 +6,7 @@ import { BoardToolbar } from "@/components/board/board-toolbar";
 import { NoticesPanel } from "@/components/board/notices-panel";
 import { ProjectColumn } from "@/components/board/project-column";
 import { StatsStrip } from "@/components/board/stats-strip";
+import { TvMode } from "@/components/board/tv-mode";
 import { WeekStrip } from "@/components/board/week-strip";
 import { SiteHeader } from "@/components/site-header";
 import { buttonStyles } from "@/components/ui";
@@ -32,15 +33,15 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
       <SiteHeader user={user} />
 
       <section className="bg-navy">
-        <div className="mx-auto max-w-[1600px] space-y-8 px-4 pt-8 pb-9 sm:px-6 lg:px-10 lg:pt-10">
+        <div data-tv-wide data-tv-compact className="mx-auto max-w-[1600px] space-y-8 px-4 pt-8 pb-9 sm:px-6 lg:px-10 lg:pt-10">
           <BoardToolbar view={view} date={date} from={from} to={to} today={today} />
           {data && view === "week" && <WeekStrip data={data} today={today} />}
           {data && <StatsStrip stats={data.stats} />}
         </div>
       </section>
 
-      <main className="mx-auto grid w-full max-w-[1600px] flex-1 items-start gap-x-8 gap-y-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:px-10 2xl:grid-cols-[minmax(0,1fr)_24rem]">
-        <div className="lg:sticky lg:top-6 lg:order-last">
+      <main data-tv-wide data-tv-fill className="mx-auto grid w-full max-w-[1600px] flex-1 items-start gap-x-8 gap-y-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:px-10 2xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <div data-tv-scroll className="lg:sticky lg:top-6 lg:order-last">
           <NoticesPanel
             notices={notices}
             showDates={view === "week"}
@@ -49,7 +50,7 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
           />
         </div>
 
-        <div className="min-w-0">
+        <div data-tv-scroll className="min-w-0">
           {!data ? (
             <EmptyState title="The board is unavailable" body="We couldn't reach the activity service. Please try again in a moment." />
           ) : data.projects.length === 0 ? (
@@ -66,7 +67,7 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
               }
             />
           ) : (
-            <div className="grid items-start gap-x-6 gap-y-10 md:grid-cols-2 2xl:grid-cols-3">
+            <div data-tv-columns className="grid items-start gap-x-6 gap-y-10 md:grid-cols-2 2xl:grid-cols-3">
               {data.projects.map((project) => (
                 <ProjectColumn key={project.id} project={project} view={view} from={from} today={today} />
               ))}
@@ -79,6 +80,7 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
           )}
         </div>
       </main>
+      <TvMode />
     </>
   );
 }

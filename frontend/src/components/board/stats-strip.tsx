@@ -9,7 +9,7 @@ export function StatsStrip({ stats }: { stats: Dashboard["stats"] }) {
   ];
 
   return (
-    <dl className="grid grid-cols-2 gap-x-6 gap-y-5 border-t border-white/15 pt-6 sm:grid-cols-4">
+    <dl data-tv-stats className="grid grid-cols-2 gap-x-6 gap-y-5 border-t border-white/15 pt-6 sm:grid-cols-4">
       {items.map((item) => (
         <div key={item.label} className="flex flex-col-reverse border-l-2 border-brand pl-4">
           <dt className="mt-1 text-xs font-medium tracking-wide text-white/70 uppercase">{item.label}</dt>

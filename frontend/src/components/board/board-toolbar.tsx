@@ -36,11 +36,11 @@ export function BoardToolbar({
       <div>
         <p className="eyebrow text-brand-light">{eyebrow}</p>
         {view === "day" ? (
-          <h1 className="mt-2 font-headline text-4xl text-white sm:text-5xl lg:text-6xl">
+          <h1 data-tv-title className="mt-2 font-headline text-4xl text-white sm:text-5xl lg:text-6xl">
             {fmt({ weekday: "long" }, date)} <span className="text-white/55">{fmt({ day: "numeric", month: "long", year: "numeric" }, date)}</span>
           </h1>
         ) : (
-          <h1 className="mt-2 font-headline text-4xl text-white sm:text-5xl lg:text-6xl">{formatRange(from, to)}</h1>
+          <h1 data-tv-title className="mt-2 font-headline text-4xl text-white sm:text-5xl lg:text-6xl">{formatRange(from, to)}</h1>
         )}
       </div>
 
