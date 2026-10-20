@@ -1,6 +1,7 @@
 # Deployment
 
 Production runs on `10.10.80.244` (Ubuntu 22.04, VPN only, SSH on port 2288) at
+**http://dashboard.care.org.rw** (nginx on port 80, see below) and directly at
 **http://10.10.80.244:3001**. Everything lives in `/opt/caredashboard` and runs as the
 `caredash` system user, separate from the other apps on the server (nginx, MySQL, the
 system Node 18 and pm2 are untouched).
@@ -29,3 +30,12 @@ The server has no internet access, so build on a Mac and copy the result over.
 4. `systemctl restart caredash-api caredash-web`.
 
 Never overwrite `data/` or `shared/api.env`. Logs: `journalctl -u caredash-api -u caredash-web -f`.
+
+## Domain (nginx)
+
+`dashboard.care.org.rw` is proxied by the server's existing nginx (port 80) to the web app on `:3001`,
+because office networks block browsing to non-standard ports. The site file is
+[`nginx-caredashboard.conf`](nginx-caredashboard.conf), installed as `/etc/nginx/sites-available/caredashboard`
+and enabled as `/etc/nginx/sites-enabled/zz-caredashboard`. The `zz-` prefix matters: nginx uses the first
+server block as the default for unknown host names, and that must stay the CARE site in `sites-enabled/default`.
+After editing: `nginx -t && systemctl reload nginx`.
