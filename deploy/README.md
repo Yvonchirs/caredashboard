@@ -39,3 +39,9 @@ because office networks block browsing to non-standard ports. The site file is
 and enabled as `/etc/nginx/sites-enabled/zz-caredashboard`. The `zz-` prefix matters: nginx uses the first
 server block as the default for unknown host names, and that must stay the CARE site in `sites-enabled/default`.
 After editing: `nginx -t && systemctl reload nginx`.
+
+HTTPS uses a Let's Encrypt certificate from certbot (`certbot --nginx -d dashboard.care.org.rw --redirect`), which
+renews through `certbot.timer`; check it with `certbot renew --dry-run`. Certbot adds its own lines to the installed
+site file, so the copy here shows the HTTP version only: re-run certbot if you reinstall it.
+[`nginx-https-catchall.conf`](nginx-https-catchall.conf), enabled as `/etc/nginx/sites-enabled/https-catchall`, is the
+default server on 443. It closes HTTPS requests for other names, which would otherwise reach the dashboard.
