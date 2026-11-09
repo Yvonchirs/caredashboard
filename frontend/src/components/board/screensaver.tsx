@@ -116,7 +116,7 @@ export function Screensaver(props: ScreensaverProps) {
       </header>
 
       <div key={slide} className="screensaver-slide flex min-h-0 flex-1 flex-col px-[4vw] py-[3vh]">
-        {slide === "activities" && <ActivitiesSlide {...props} />}
+        {slide === "activities" && <ActivitiesSlide {...props} cycle={Math.floor(index / slides.length)} />}
         {slide === "notices" && <NoticesSlide {...props} />}
         {slide === "team" && counts && <TeamSlide {...props} counts={counts} />}
       </div>
@@ -143,13 +143,13 @@ function SlideTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
   );
 }
 
-function ActivitiesSlide({ eyebrow, heading, showDates, projects }: ScreensaverProps) {
+function ActivitiesSlide({ eyebrow, heading, showDates, projects, cycle }: ScreensaverProps & { cycle: number }) {
   const shown = projects.slice(0, MAX_PROJECTS);
   const hidden = projects.length - shown.length;
   return (
     <>
       <SlideTitle eyebrow={eyebrow} title={heading} />
-      <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-x-[2vw] gap-y-[3vh] sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-x-[2vw] gap-y-[3vh] overflow-hidden sm:grid-cols-2 xl:grid-cols-3">
         {shown.map((project) => {
           const extra = project.activities.length - MAX_ACTIVITIES;
           return (
@@ -159,18 +159,32 @@ function ActivitiesSlide({ eyebrow, heading, showDates, projects }: ScreensaverP
                 {project.code} · {project.activities.length} {project.activities.length === 1 ? "activity" : "activities"}
               </p>
               <ul className="mt-3 space-y-2.5">
-                {project.activities.slice(0, MAX_ACTIVITIES).map((activity) => (
-                  <li key={activity.id} className="text-[clamp(1rem,1.5vw,1.375rem)] leading-snug">
-                    <span className="font-bold text-brand-light tabular">
-                      {showDates && `${formatWeekday(activity.date)} `}
-                      {activity.startTime}
-                    </span>{" "}
-                    {activity.title}
-                    <span className="block text-sm text-white/60">
-                      {activity.author.name} · {activity.location}
-                    </span>
-                  </li>
-                ))}
+                {[...project.activities]
+                  .sort((a, b) => Number(b.photos.length > 0) - Number(a.photos.length > 0))
+                  .slice(0, MAX_ACTIVITIES)
+                  .map((activity) => {
+                    // Each loop shows the next photo of an activity that has several.
+                    const photo = activity.photos.length ? activity.photos[cycle % activity.photos.length] : null;
+                    return (
+                      <li key={activity.id} className="flex gap-3 text-[clamp(1rem,1.5vw,1.375rem)] leading-snug">
+                        {photo && (
+                          <div className="relative aspect-4/3 w-[clamp(8rem,14vw,16rem)] shrink-0 self-start overflow-hidden rounded-md bg-white/10">
+                            <Image src={photo.url} alt={photo.caption ?? `Photo from ${activity.title}`} fill sizes="160px" className="object-cover" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <span className="font-bold text-brand-light tabular">
+                            {showDates && `${formatWeekday(activity.date)} `}
+                            {activity.startTime}
+                          </span>{" "}
+                          {activity.title}
+                          <span className="block text-sm text-white/60">
+                            {activity.author.name} · {activity.location}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
               </ul>
               {extra > 0 && <p className="mt-2 text-sm text-white/60">+{extra} more</p>}
             </section>
