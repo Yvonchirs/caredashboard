@@ -23,6 +23,8 @@ const SLIDE_MS = 10_000;
 const SETTLE_MS = 600;
 const MAX_PROJECTS = 6;
 const MAX_ACTIVITIES = 3;
+/** Photos take room, so projects with pictures list fewer activities. */
+const MAX_ACTIVITIES_WITH_PHOTOS = 2;
 
 const ICONS: Record<WorkStatus, LucideIcon> = { office: Building2, home: House, field: MapPin, leave: TreePalm };
 const STATUS_ORDER: WorkStatus[] = ["office", "home", "field", "leave"];
@@ -151,7 +153,8 @@ function ActivitiesSlide({ eyebrow, heading, showDates, projects, cycle }: Scree
       <SlideTitle eyebrow={eyebrow} title={heading} />
       <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-x-[2vw] gap-y-[3vh] overflow-hidden sm:grid-cols-2 xl:grid-cols-3">
         {shown.map((project) => {
-          const extra = project.activities.length - MAX_ACTIVITIES;
+          const limit = project.activities.some((a) => a.photos.length > 0) ? MAX_ACTIVITIES_WITH_PHOTOS : MAX_ACTIVITIES;
+          const extra = project.activities.length - limit;
           return (
             <section key={project.id} className="border-t-4 pt-3" style={{ borderColor: projectColor(project.id) }}>
               <h3 className="font-headline text-[clamp(1.5rem,2.4vw,2.25rem)] leading-tight text-white">{project.name}</h3>
@@ -161,18 +164,18 @@ function ActivitiesSlide({ eyebrow, heading, showDates, projects, cycle }: Scree
               <ul className="mt-3 space-y-2.5">
                 {[...project.activities]
                   .sort((a, b) => Number(b.photos.length > 0) - Number(a.photos.length > 0))
-                  .slice(0, MAX_ACTIVITIES)
+                  .slice(0, limit)
                   .map((activity) => {
                     // Each loop shows the next photo of an activity that has several.
                     const photo = activity.photos.length ? activity.photos[cycle % activity.photos.length] : null;
                     return (
-                      <li key={activity.id} className="flex gap-3 text-[clamp(1rem,1.5vw,1.375rem)] leading-snug">
+                      <li key={activity.id} className="text-[clamp(1rem,1.5vw,1.375rem)] leading-snug">
                         {photo && (
-                          <div className="relative aspect-4/3 w-[clamp(8rem,14vw,16rem)] shrink-0 self-start overflow-hidden rounded-md bg-white/10">
-                            <Image src={photo.url} alt={photo.caption ?? `Photo from ${activity.title}`} fill sizes="160px" className="object-cover" />
+                          <div className="relative mb-2 aspect-video w-full overflow-hidden rounded-md bg-white/10">
+                            <Image src={photo.url} alt={photo.caption ?? `Photo from ${activity.title}`} fill sizes="(min-width: 1280px) 30vw, 50vw" className="object-cover" />
                           </div>
                         )}
-                        <div className="min-w-0">
+                        <div>
                           <span className="font-bold text-brand-light tabular">
                             {showDates && `${formatWeekday(activity.date)} `}
                             {activity.startTime}
