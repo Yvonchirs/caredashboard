@@ -7,6 +7,7 @@ import { NoticesPanel } from "@/components/board/notices-panel";
 import { ProjectColumn } from "@/components/board/project-column";
 import { StatsStrip } from "@/components/board/stats-strip";
 import { TvMode } from "@/components/board/tv-mode";
+import { WeatherStrip } from "@/components/board/weather-strip";
 import { WeekStrip } from "@/components/board/week-strip";
 import { SiteHeader } from "@/components/site-header";
 import { buttonStyles } from "@/components/ui";
@@ -34,6 +35,7 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
 
       <section className="bg-navy">
         <div data-tv-wide data-tv-compact className="mx-auto max-w-[1600px] space-y-8 px-4 pt-8 pb-9 sm:px-6 lg:px-10 lg:pt-10">
+          <WeatherStrip />
           <BoardToolbar view={view} date={date} from={from} to={to} today={today} />
           {data && view === "week" && <WeekStrip data={data} today={today} />}
           {data && <StatsStrip stats={data.stats} />}
