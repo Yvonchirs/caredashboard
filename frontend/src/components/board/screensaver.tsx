@@ -3,6 +3,7 @@
 import { Building2, CalendarClock, House, MapPin, Megaphone, TreePalm, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
 import { formatShortDate, formatWeekday } from "@/lib/dates";
 import type { DueDeadline } from "@/lib/notices";
@@ -51,7 +52,17 @@ export function Screensaver(props: ScreensaverProps) {
 
   const [active, setActive] = useState(false);
   const [index, setIndex] = useState(0);
-  const shownAt = useRef(0);
+  const shownAt = useRef(Number.NEGATIVE_INFINITY);
+  // A host outside <body>, so TV mode's zoom on <body> doesn't scale the screensaver and full screen still contains it.
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  const hostRef = useRef<HTMLElement | null>(null);
+  useEffect(
+    () => () => {
+      hostRef.current?.remove();
+      hostRef.current = null;
+    },
+    [],
+  );
   const enabled = slides.length > 0;
 
   useEffect(() => {
@@ -69,11 +80,17 @@ export function Screensaver(props: ScreensaverProps) {
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         shownAt.current = performance.now();
+        if (!hostRef.current) {
+          hostRef.current = document.createElement("div");
+          document.documentElement.appendChild(hostRef.current);
+          setHost(hostRef.current);
+        }
         setIndex(0);
         setActive(true);
       }, IDLE_MS);
     };
-    const events = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart", "scroll"] as const;
+    // Not "scroll": TV mode auto-scrolls the board, which would keep resetting the idle timer.
+    const events = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart"] as const;
     wake();
     for (const name of events) window.addEventListener(name, wake, { passive: true, capture: true });
     return () => {
@@ -88,11 +105,11 @@ export function Screensaver(props: ScreensaverProps) {
     return () => window.clearInterval(id);
   }, [active, slides.length]);
 
-  if (!active || !enabled) return null;
+  if (!active || !enabled || !host) return null;
   const slide = slides[index % slides.length];
 
-  return (
-    <div role="dialog" aria-modal="true" aria-label="Board screensaver" className="fixed inset-0 z-[60] flex cursor-none flex-col bg-navy text-white">
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-label="Board screensaver" className="fixed inset-0 z-[60] flex cursor-none flex-col bg-navy font-sans text-white">
       <header className="flex items-center justify-between px-[4vw] pt-[3vh]">
         <Image src="/brand/care-logo-white.png" alt="CARE" width={104} height={34} className="h-9 w-auto" />
         <p className="text-sm font-medium tracking-wide text-white/70 uppercase">Rwanda · Activity Board</p>
@@ -112,7 +129,8 @@ export function Screensaver(props: ScreensaverProps) {
           ))}
         </span>
       </footer>
-    </div>
+    </div>,
+    host,
   );
 }
 
