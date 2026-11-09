@@ -49,6 +49,7 @@ export default async function UsersPage() {
                   <div className="flex flex-wrap gap-1">
                     {user.role === "admin" ? <Badge tone="brand">Admin</Badge> : <Badge>Staff</Badge>}
                     {user.role !== "admin" && user.canPostNotices && <Badge tone="ink">Notices</Badge>}
+                    {user.role !== "admin" && user.canSeeWorkStatus && <Badge tone="ink">Access list</Badge>}
                   </div>
                 </td>
                 <td className="px-5 py-3.5">

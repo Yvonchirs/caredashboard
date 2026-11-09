@@ -26,6 +26,23 @@ export function addDays(iso: string, days: number): string {
   return format(date);
 }
 
+export function boardEyebrow(view: BoardView, isCurrent: boolean): string {
+  if (view === "day") return isCurrent ? "Happening today" : "Activities on";
+  return isCurrent ? "This week" : "Week of";
+}
+
+export function isWeekend(iso: string): boolean {
+  const day = parse(iso).getUTCDay();
+  return day === 0 || day === 6;
+}
+
+/** The next (or previous) Monday-to-Friday day after `iso`. */
+export function stepWorkday(iso: string, direction: 1 | -1): string {
+  let next = addDays(iso, direction);
+  while (isWeekend(next)) next = addDays(next, direction);
+  return next;
+}
+
 export function daysBetween(from: string, to: string): number {
   return Math.round((parse(to).getTime() - parse(from).getTime()) / 86_400_000);
 }

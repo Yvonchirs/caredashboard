@@ -2,7 +2,7 @@ import type { EntityManager } from '@mikro-orm/core';
 import { Seeder } from '@mikro-orm/seeder';
 import { addDays, toIsoDate } from '../common/date.util.js';
 import { hashPassword } from '../common/password.util.js';
-import { Activity, Notice, Project, User } from '../entities/index.js';
+import { Activity, Notice, Project, User, WORK_STATUSES, WorkStatus } from '../entities/index.js';
 
 export const SEED_ADMIN = { email: 'admin@care.org.rw', password: 'Admin@12345' };
 export const SEED_STAFF_PASSWORD = 'Staff@12345';
@@ -158,6 +158,7 @@ export class DatabaseSeeder extends Seeder {
     // Diane can post notices; a few deadlines and announcements for today and tomorrow.
     const diane = staff.find((member) => member.user.name.startsWith('Diane'))!.user;
     diane.canPostNotices = true;
+    staff.find((member) => member.user.name.startsWith('Jean'))!.user.canSeeWorkStatus = true;
     const today = toIsoDate(new Date());
     const notices = [
       { kind: 'deadline', title: 'Q3 narrative reports due to M&E', details: 'Use the updated reporting template on SharePoint.', date: today, time: '17:00' },
@@ -166,5 +167,13 @@ export class DatabaseSeeder extends Seeder {
       { kind: 'announcement', title: 'Country Director visiting Nyamagabe projects', date: addDays(today, 1) },
     ] as const;
     for (const notice of notices) em.create(Notice, { ...notice, author: diane });
+
+    // Where staff say they are working today and tomorrow (a couple are left unset).
+    for (const [i, member] of staff.entries()) {
+      if (i === staff.length - 1) continue;
+      for (const [offset, date] of [today, addDays(today, 1)].entries()) {
+        em.create(WorkStatus, { user: member.user, date, status: WORK_STATUSES[(i + offset * 2) % WORK_STATUSES.length] });
+      }
+    }
   }
 }

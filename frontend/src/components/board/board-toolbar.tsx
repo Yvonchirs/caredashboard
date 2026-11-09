@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { addDays, formatRange, type BoardView } from "@/lib/dates";
+import { addDays, boardEyebrow, formatRange, type BoardView } from "@/lib/dates";
 import { DateJump } from "./date-jump";
 import { FullscreenToggle } from "./fullscreen-toggle";
 
@@ -29,7 +29,7 @@ export function BoardToolbar({
 }) {
   const step = view === "day" ? 1 : 7;
   const isCurrent = today >= from && today <= to;
-  const eyebrow = isCurrent ? (view === "day" ? "Happening today" : "This week") : view === "day" ? "Activities on" : "Week of";
+  const eyebrow = boardEyebrow(view, isCurrent);
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">

@@ -1,10 +1,8 @@
 import { CalendarClock, Megaphone, Plus } from "lucide-react";
 import Link from "next/link";
-import { daysBetween, formatShortDate, formatWeekday } from "@/lib/dates";
+import { formatShortDate, formatWeekday } from "@/lib/dates";
+import { splitNotices } from "@/lib/notices";
 import { RECURRENCE_LABELS, type Notice } from "@/lib/types";
-
-/** Deadlines start showing this many days before they are due (matches the API). */
-const DEADLINE_LEAD_DAYS = 5;
 
 export function NoticesPanel({
   notices,
@@ -18,10 +16,7 @@ export function NoticesPanel({
   referenceDate: string;
   canPost: boolean;
 }) {
-  const deadlines = notices
-    .map((notice) => ({ notice, remaining: daysBetween(referenceDate, notice.date) }))
-    .filter(({ notice, remaining }) => notice.kind === "deadline" && remaining >= 0 && remaining <= DEADLINE_LEAD_DAYS);
-  const announcements = notices.filter((notice) => notice.kind === "announcement");
+  const { deadlines, announcements } = splitNotices(notices, referenceDate);
 
   return (
     <aside aria-labelledby="notices-heading" className="border-t-4 border-brand bg-surface">

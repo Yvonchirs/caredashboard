@@ -53,6 +53,7 @@ function CreateUserForm({ projects, onClose }: { projects: Project[]; onClose: (
 function UserFields({ user, projects, isSelf }: { user?: User; projects: Project[]; isSelf?: boolean }) {
   const [role, setRole] = useState(user?.role ?? "staff");
   const [canPostNotices, setCanPostNotices] = useState(user?.role === "staff" && user.canPostNotices);
+  const [canSeeWorkStatus, setCanSeeWorkStatus] = useState(user?.role === "staff" && user.canSeeWorkStatus);
   const assigned = new Set(user?.projects.map((p) => p.id));
 
   return (
@@ -125,6 +126,23 @@ function UserFields({ user, projects, isSelf }: { user?: User; projects: Project
           <span className="block font-bold">Can post deadlines &amp; announcements</span>
           <span className="block text-xs text-ink-subtle">
             {role === "admin" ? "Admins can always post them." : "Shown in the side panel of the public board."}
+          </span>
+        </span>
+      </label>
+
+      <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-line px-3 py-3 text-sm has-disabled:cursor-default has-disabled:opacity-60">
+        <input
+          type="checkbox"
+          name="canSeeWorkStatus"
+          checked={role === "admin" || canSeeWorkStatus}
+          onChange={(event) => setCanSeeWorkStatus(event.target.checked)}
+          disabled={role === "admin"}
+          className="mt-0.5 size-4 accent-brand"
+        />
+        <span>
+          <span className="block font-bold">On the access list to see who is working where</span>
+          <span className="block text-xs text-ink-subtle">
+            {role === "admin" ? "Admins can always see it." : "Shows names under the office, home, field and leave counts on the board."}
           </span>
         </span>
       </label>

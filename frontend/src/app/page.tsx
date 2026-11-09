@@ -6,15 +6,21 @@ import { BoardToolbar } from "@/components/board/board-toolbar";
 import { NoticesPanel } from "@/components/board/notices-panel";
 import { ProjectColumn } from "@/components/board/project-column";
 import { StatsStrip } from "@/components/board/stats-strip";
+import { Screensaver } from "@/components/board/screensaver";
 import { TvMode } from "@/components/board/tv-mode";
+import { WorkStatusPanel } from "@/components/board/work-status-panel";
 import { WeatherStrip } from "@/components/board/weather-strip";
 import { WeekStrip } from "@/components/board/week-strip";
 import { SiteHeader } from "@/components/site-header";
 import { buttonStyles } from "@/components/ui";
 import { api } from "@/lib/api";
-import { isIsoDate, rangeFor, todayIso, type BoardView } from "@/lib/dates";
+import { addDays, boardEyebrow, formatLongDate, formatRange, formatShortDate, formatWeekday, isIsoDate, isWeekend, rangeFor, todayIso, type BoardView } from "@/lib/dates";
+import { splitNotices } from "@/lib/notices";
 import { getCurrentUser } from "@/lib/session";
-import type { Dashboard, Notice } from "@/lib/types";
+import type { Dashboard, MyWorkStatusDay, Notice, WorkStatusCounts, WorkStatusPerson } from "@/lib/types";
+
+/** Working days offered in the planner: one working week ahead. */
+const WORKDAYS_SHOWN = 5;
 
 export default async function BoardPage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
@@ -23,11 +29,23 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
   const date = isIsoDate(params.date) ? params.date : today;
   const { from, to } = rangeFor(view, date);
 
-  const [data, notices, user] = await Promise.all([
+  // Week view counts today (or the first day of the range if today is outside it).
+  const statusDate = view === "day" ? date : today < from ? from : today > to ? to : today;
+
+  const [data, notices, user, workCounts] = await Promise.all([
     api<Dashboard>(`/dashboard?from=${from}&to=${to}`, { auth: false }).catch(() => null),
     api<Notice[]>(`/notices?from=${from}&to=${to}`, { auth: false }).catch(() => []),
     getCurrentUser().catch(() => null),
+    api<WorkStatusCounts>(`/work-status?date=${statusDate}`, { auth: false }).catch(() => null),
   ]);
+  const [people, plan] = user
+    ? await Promise.all([
+        user.canSeeWorkStatus ? api<WorkStatusPerson[]>(`/work-status/people?date=${statusDate}`).catch(() => null) : null,
+        api<MyWorkStatusDay[]>(`/work-status/me?from=${today}&to=${addDays(today, 9)}`)
+          .then((days) => days.filter((day) => !isWeekend(day.date)).slice(0, WORKDAYS_SHOWN))
+          .catch(() => null),
+      ])
+    : [null, null];
 
   return (
     <>
@@ -43,13 +61,14 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
       </section>
 
       <main data-tv-wide data-tv-fill className="mx-auto grid w-full max-w-[1600px] flex-1 items-start gap-x-8 gap-y-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:px-10 2xl:grid-cols-[minmax(0,1fr)_24rem]">
-        <div data-tv-scroll className="lg:sticky lg:top-6 lg:order-last">
+        <div data-tv-scroll className="space-y-6 lg:sticky lg:top-6 lg:order-last">
           <NoticesPanel
             notices={notices}
             showDates={view === "week"}
-            referenceDate={view === "day" ? date : today < from ? from : today > to ? to : today}
+            referenceDate={statusDate}
             canPost={user?.canPostNotices ?? false}
           />
+          {workCounts && <WorkStatusPanel counts={workCounts} isToday={statusDate === today} today={today} people={people} plan={plan} />}
         </div>
 
         <div data-tv-scroll className="min-w-0">
@@ -83,6 +102,16 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
         </div>
       </main>
       <TvMode />
+      <Screensaver
+        eyebrow={boardEyebrow(view, today >= from && today <= to)}
+        heading={view === "day" ? formatLongDate(date) : formatRange(from, to)}
+        showDates={view === "week"}
+        projects={data?.projects ?? []}
+        {...splitNotices(notices, statusDate)}
+        teamLabel={statusDate === today ? "Today" : `${formatWeekday(statusDate)} ${formatShortDate(statusDate)}`}
+        counts={workCounts}
+        people={people}
+      />
     </>
   );
 }

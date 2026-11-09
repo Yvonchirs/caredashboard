@@ -8,6 +8,7 @@ import ormConfig from './mikro-orm.config.js';
 import { NoticesModule } from './notices/notices.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { UsersModule } from './users/users.module.js';
+import { WorkStatusModule } from './work-status/work-status.module.js';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UsersModule } from './users/users.module.js';
     ActivitiesModule,
     DashboardModule,
     NoticesModule,
+    WorkStatusModule,
   ],
 })
 export class AppModule {}

@@ -3,3 +3,4 @@ export * from './notice.entity.js';
 export * from './photo.entity.js';
 export * from './project.entity.js';
 export * from './user.entity.js';
+export * from './work-status.entity.js';

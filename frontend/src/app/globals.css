@@ -162,3 +162,20 @@ html[data-tv] [data-column-scroll] {
   max-height: none;
   overflow: visible;
 }
+
+/* Screensaver slides fade in as they change. */
+@keyframes screensaver-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.screensaver-slide {
+  animation: screensaver-in 0.7s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screensaver-slide {
+    animation: none;
+  }
+}

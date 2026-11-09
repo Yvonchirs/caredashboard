@@ -177,6 +177,7 @@ function userBody(formData: FormData) {
     role: text(formData, "role"),
     projectIds: ids(formData, "projectIds"),
     canPostNotices: formData.get("canPostNotices") === "on",
+    canSeeWorkStatus: formData.get("canSeeWorkStatus") === "on",
   };
 }
 
@@ -250,4 +251,16 @@ export async function createNotice(_state: FormState, formData: FormData): Promi
 export async function deleteNotice(id: number) {
   await api(`/notices/${id}`, { method: "DELETE" });
   revalidatePath("/", "layout");
+}
+
+export async function setWorkStatus(formData: FormData) {
+  const date = text(formData, "date");
+  const status = text(formData, "status");
+  // Choosing the current status again clears it.
+  if (text(formData, "current") === status) {
+    await api(`/work-status/me?date=${encodeURIComponent(date)}`, { method: "DELETE" });
+  } else {
+    await api("/work-status/me", { method: "PUT", body: { date, status } });
+  }
+  revalidatePath("/");
 }

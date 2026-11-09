@@ -17,6 +17,8 @@ export const UserSchema = defineEntity({
     mustChangePassword: p.boolean().default(false),
     /** Lets staff post deadlines and announcements on the board; admins always can. */
     canPostNotices: p.boolean().default(false),
+    /** Lets staff see who is working where (names, not just counts); admins always can. */
+    canSeeWorkStatus: p.boolean().default(false),
     projects: () => p.manyToMany(Project).owner(),
     createdAt: p.datetime().onCreate(() => new Date()),
   },

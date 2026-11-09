@@ -11,6 +11,7 @@ export function serializeUser(user: User) {
     isActive: user.isActive,
     mustChangePassword: user.mustChangePassword,
     canPostNotices: user.role === 'admin' || user.canPostNotices,
+    canSeeWorkStatus: user.role === 'admin' || user.canSeeWorkStatus,
     projects: user.projects.isInitialized()
       ? user.projects.getItems().map((p) => ({ id: p.id, name: p.name, code: p.code }))
       : [],

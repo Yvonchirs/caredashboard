@@ -17,6 +17,8 @@ export interface User {
   mustChangePassword: boolean;
   /** Always true for admins. */
   canPostNotices: boolean;
+  /** May see who is working where by name. Always true for admins. */
+  canSeeWorkStatus: boolean;
   projects: ProjectRef[];
   createdAt: string;
 }
@@ -99,3 +101,33 @@ export interface Dashboard {
 }
 
 export type FormState = { error?: string; success?: string; secret?: string } | undefined;
+
+export type WorkStatus = "office" | "home" | "field" | "leave";
+
+export const WORK_STATUS_LABELS: Record<WorkStatus, string> = {
+  office: "Office",
+  home: "Home",
+  field: "On field",
+  leave: "On leave",
+};
+
+export interface WorkStatusCounts {
+  date: string;
+  office: number;
+  home: number;
+  field: number;
+  leave: number;
+  notSet: number;
+}
+
+export interface WorkStatusPerson {
+  id: number;
+  name: string;
+  jobTitle: string | null;
+  status: WorkStatus | null;
+}
+
+export interface MyWorkStatusDay {
+  date: string;
+  status: WorkStatus | null;
+}

@@ -24,6 +24,8 @@ export class UserDto {
   @ApiProperty() mustChangePassword: boolean;
   @ApiProperty({ description: 'May post deadlines and announcements (always true for admins)' })
   canPostNotices: boolean;
+  @ApiProperty({ description: 'May see who is working where, by name (always true for admins)' })
+  canSeeWorkStatus: boolean;
   @ApiProperty({ type: [ProjectRefDto], description: 'Projects the user may log activities for' })
   projects: ProjectRefDto[];
   @ApiProperty() createdAt: Date;
@@ -61,6 +63,11 @@ export class CreateUserDto {
   @IsOptional()
   @IsBoolean()
   canPostNotices?: boolean;
+
+  @ApiPropertyOptional({ default: false, description: 'Allow seeing the names of who is working where (the access list)' })
+  @IsOptional()
+  @IsBoolean()
+  canSeeWorkStatus?: boolean;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
