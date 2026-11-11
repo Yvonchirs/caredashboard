@@ -19,6 +19,11 @@ export const UserSchema = defineEntity({
     canPostNotices: p.boolean().default(false),
     /** Lets staff see who is working where (names, not just counts); admins always can. */
     canSeeWorkStatus: p.boolean().default(false),
+    /** SHA-256 of the emailed set/reset-password token; the token itself is never stored. */
+    resetTokenHash: p.string().nullable().hidden(),
+    resetTokenExpiresAt: p.datetime().nullable().hidden(),
+    /** Lifetime the current token was issued with, used to throttle repeat requests. */
+    resetTokenHours: p.integer().nullable().hidden(),
     projects: () => p.manyToMany(Project).owner(),
     createdAt: p.datetime().onCreate(() => new Date()),
   },

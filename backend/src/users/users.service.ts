@@ -1,5 +1,6 @@
 import { EntityManager, UniqueConstraintViolationException } from '@mikro-orm/sqlite';
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { PasswordResetService } from '../auth/password-reset.service.js';
 import { generateTemporaryPassword, hashPassword } from '../common/password.util.js';
 import { serializeStaffRef, serializeUser } from '../common/serializers.js';
 import { Project, User } from '../entities/index.js';
@@ -7,7 +8,10 @@ import type { CreateUserDto, UpdateUserDto } from './users.dto.js';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly em: EntityManager) {}
+  constructor(
+    private readonly em: EntityManager,
+    private readonly passwordReset: PasswordResetService,
+  ) {}
 
   async findAll() {
     const users = await this.em.findAll(User, { populate: ['projects'], orderBy: { name: 'asc' } });
@@ -33,7 +37,7 @@ export class UsersService {
     });
     if (dto.projectIds) user.projects.set(await this.loadProjects(dto.projectIds));
     await this.flushUnique();
-    return { user: serializeUser(user), temporaryPassword };
+    return { user: serializeUser(user), temporaryPassword, emailSent: await this.passwordReset.sendWelcome(user) };
   }
 
   async update(actor: User, id: number, dto: UpdateUserDto) {
@@ -61,7 +65,7 @@ export class UsersService {
     user.passwordHash = await hashPassword(temporaryPassword);
     user.mustChangePassword = true;
     await this.em.flush();
-    return { user: serializeUser(user), temporaryPassword };
+    return { user: serializeUser(user), temporaryPassword, emailSent: await this.passwordReset.sendAdminReset(user) };
   }
 
   private async loadProjects(ids: number[]) {

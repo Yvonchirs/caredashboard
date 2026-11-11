@@ -32,6 +32,10 @@ npm run dev              # App on http://localhost:3000
 - **Staff:** log activities (date, time, location, details, up to 6 photos) for the projects they're assigned to, and manage their own entries.
 - **Admins:** everything staff can do, plus create/edit/archive projects, create users, assign roles and project access, reset passwords (one-time password, changed at next sign-in) and activate or deactivate accounts.
 
+## Email
+
+New users get an email with a link to choose their password, and anyone can use **Forgot password** on the sign-in page to get a reset link (valid for 2 hours, single use; welcome links last 72 hours). Configure SMTP in `backend/.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`) and set `APP_URL` to the address users open. With `SMTP_HOST` empty, emails are only written to the API log, with the link, so you can test locally. Admins still see a one-time password when creating or resetting a user, as a fallback.
+
 ## Scripts
 
 | | backend | frontend |

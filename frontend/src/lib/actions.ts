@@ -6,6 +6,9 @@ import { redirect } from "next/navigation";
 import { api, errorMessage, SESSION_COOKIE } from "./api";
 import type { FormState, User } from "./types";
 
+const EMAIL_NOTE = (sent: boolean) =>
+  sent ? "We emailed them a link to choose a password." : "No email was sent (email isn't set up or failed), so share the one-time password below.";
+
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
 const ids = (formData: FormData, key: string) => formData.getAll(key).map(Number);
 
@@ -63,6 +66,26 @@ export async function changePassword(_state: FormState, formData: FormData): Pro
     return { error: errorMessage(error) };
   }
   redirect("/workspace");
+}
+
+export async function requestPasswordReset(_state: FormState, formData: FormData): Promise<FormState> {
+  try {
+    await api("/auth/forgot-password", { method: "POST", auth: false, body: { email: text(formData, "email") } });
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
+  return { success: "If an account exists for that email, a reset link is on its way. It works for 2 hours." };
+}
+
+export async function resetPassword(_state: FormState, formData: FormData): Promise<FormState> {
+  const newPassword = String(formData.get("newPassword") ?? "");
+  if (newPassword !== formData.get("confirmPassword")) return { error: "The passwords don't match." };
+  try {
+    await api("/auth/reset-password", { method: "POST", auth: false, body: { token: text(formData, "token"), newPassword } });
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
+  redirect("/login?reset=1");
 }
 
 export async function createActivity(_state: FormState, formData: FormData): Promise<FormState> {
@@ -183,12 +206,12 @@ function userBody(formData: FormData) {
 
 export async function createUser(_state: FormState, formData: FormData): Promise<FormState> {
   try {
-    const { temporaryPassword } = await api<{ temporaryPassword: string }>("/users", {
+    const { temporaryPassword, emailSent } = await api<{ temporaryPassword: string; emailSent: boolean }>("/users", {
       method: "POST",
       body: userBody(formData),
     });
     revalidatePath("/admin/users");
-    return { success: `Account created for ${text(formData, "name")}.`, secret: temporaryPassword };
+    return { success: `Account created for ${text(formData, "name")}. ${EMAIL_NOTE(emailSent)}`, secret: temporaryPassword };
   } catch (error) {
     return { error: errorMessage(error) };
   }
@@ -216,11 +239,12 @@ export async function setUserActive(id: number, isActive: boolean): Promise<Form
 
 export async function resetUserPassword(id: number): Promise<FormState> {
   try {
-    const { temporaryPassword } = await api<{ temporaryPassword: string }>(`/users/${id}/reset-password`, {
-      method: "POST",
-    });
+    const { temporaryPassword, emailSent } = await api<{ temporaryPassword: string; emailSent: boolean }>(
+      `/users/${id}/reset-password`,
+      { method: "POST" },
+    );
     revalidatePath("/admin/users");
-    return { success: "Password reset.", secret: temporaryPassword };
+    return { success: `Password reset. ${EMAIL_NOTE(emailSent)}`, secret: temporaryPassword };
   } catch (error) {
     return { error: errorMessage(error) };
   }

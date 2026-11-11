@@ -81,4 +81,6 @@ export class UserWithPasswordDto {
   @ApiProperty({ type: UserDto }) user: UserDto;
   @ApiProperty({ description: 'One-time password to share with the user. They must change it at first sign-in.' })
   temporaryPassword: string;
+  @ApiProperty({ description: 'Whether an email with a set-password link was sent to the user' })
+  emailSent: boolean;
 }

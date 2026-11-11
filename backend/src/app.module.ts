@@ -5,6 +5,7 @@ import { ActivitiesModule } from './activities/activities.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 import ormConfig from './mikro-orm.config.js';
+import { MailModule } from './mail/mail.module.js';
 import { NoticesModule } from './notices/notices.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -14,6 +15,7 @@ import { WorkStatusModule } from './work-status/work-status.module.js';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     MikroOrmModule.forRoot(ormConfig),
+    MailModule,
     AuthModule,
     UsersModule,
     ProjectsModule,

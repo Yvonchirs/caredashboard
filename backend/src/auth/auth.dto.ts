@@ -23,6 +23,24 @@ export class ChangePasswordDto {
   newPassword: string;
 }
 
+export class ForgotPasswordDto {
+  @ApiProperty({ example: 'aline@care.org.rw' })
+  @IsEmail()
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @ApiProperty({ description: 'The token from the emailed link' })
+  @IsString()
+  @MinLength(20)
+  token: string;
+
+  @ApiProperty({ minLength: 8 })
+  @IsString()
+  @MinLength(8)
+  newPassword: string;
+}
+
 export class LoginResponseDto {
   @ApiProperty()
   accessToken: string;
