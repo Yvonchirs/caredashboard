@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth-shell";
 import { Alert } from "@/components/ui";
@@ -21,10 +20,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       )}
       <LoginForm next={typeof next === "string" ? next : ""} />
       <p className="mt-8 border-t border-line pt-5 text-sm text-ink-subtle">
-        Forgot your password?{" "}
-        <Link href="/forgot-password" className="font-medium text-ink underline underline-offset-2 hover:text-brand-dark">
-          Email me a reset link
-        </Link>
+        Forgot your password? Ask a system administrator to reset it for you.
       </p>
     </AuthShell>
   );
