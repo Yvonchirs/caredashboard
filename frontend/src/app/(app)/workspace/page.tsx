@@ -133,6 +133,8 @@ export default async function WorkspacePage({ searchParams }: PageProps<"/worksp
                 canDelete={activity.author.id === user.id || user.role === "admin"}
                 canAddPhotos={(activity.author.id === user.id || user.role === "admin") && (activity.status === "live" || user.role === "admin")}
                 canSetOutcome={(activity.author.id === user.id || user.role === "admin") && (activity.status === "completed" || user.role === "admin")}
+                canManagePhotos={activity.author.id === user.id || user.role === "admin"}
+                canDeletePhotos={(activity.author.id === user.id && activity.status !== "completed") || user.role === "admin"}
                 canDownloadReport={activity.status === "completed"}
               />
             </li>

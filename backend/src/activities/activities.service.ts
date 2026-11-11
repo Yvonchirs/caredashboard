@@ -1,5 +1,5 @@
 import { EntityManager, type FilterQuery } from '@mikro-orm/sqlite';
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { computeActivityStatus, daysBetween, MAX_ACTIVITY_DAYS } from '../common/date.util.js';
 import { serializeActivity } from '../common/serializers.js';
 import { Activity, Photo, Project, User } from '../entities/index.js';
@@ -102,6 +102,35 @@ export class ActivitiesService {
       await removeUploads(files.map((file) => file.filename));
       throw error;
     }
+  }
+
+  /** Changes a photo's caption. Author or admin, at any time. */
+  async updatePhoto(user: User, id: number, photoId: number, caption: string | undefined) {
+    const activity = await this.findEditable(user, id);
+    const photo = this.findPhoto(activity, photoId);
+    photo.caption = caption?.trim() || null;
+    await this.em.flush();
+    return serializeActivity(activity);
+  }
+
+  /** Removes a photo. Author or admin, until the activity is completed (admins can always). */
+  async removePhoto(user: User, id: number, photoId: number) {
+    const activity = await this.findEditable(user, id);
+    if (user.role !== 'admin' && computeActivityStatus(activity) === 'completed') {
+      throw new ForbiddenException('Photos can no longer be removed once the activity is completed');
+    }
+    const photo = this.findPhoto(activity, photoId);
+    const filename = photo.filename;
+    await this.em.remove(photo).flush();
+    await removeUploads([filename]);
+    await this.em.populate(activity, ['photos'], { refresh: true });
+    return serializeActivity(activity);
+  }
+
+  private findPhoto(activity: Activity, photoId: number) {
+    const photo = activity.photos.getItems().find((item) => item.id === photoId);
+    if (!photo) throw new NotFoundException('Photo not found on this activity');
+    return photo;
   }
 
   /** Links uploaded files to the activity as Photo entities, pairing each with its caption by position. */

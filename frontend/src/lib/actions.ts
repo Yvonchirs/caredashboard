@@ -153,6 +153,26 @@ export async function addActivityPhotos(id: number, _state: FormState, formData:
   return { success: "Photos added." };
 }
 
+export async function updatePhotoCaption(activityId: number, photoId: number, _state: FormState, formData: FormData): Promise<FormState> {
+  try {
+    await api(`/activities/${activityId}/photos/${photoId}`, { method: "PATCH", body: { caption: text(formData, "caption") } });
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
+  revalidatePath("/", "layout");
+  return { success: "Caption saved." };
+}
+
+export async function deletePhoto(activityId: number, photoId: number): Promise<FormState> {
+  try {
+    await api(`/activities/${activityId}/photos/${photoId}`, { method: "DELETE" });
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
+  revalidatePath("/", "layout");
+  return { success: "Photo deleted." };
+}
+
 export async function deleteActivity(id: number) {
   await api(`/activities/${id}`, { method: "DELETE" });
   revalidatePath("/", "layout");

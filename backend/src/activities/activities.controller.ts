@@ -35,6 +35,7 @@ import {
   DateRangeQueryDto,
   SetActivityOutcomeDto,
   UpdateActivityDto,
+  UpdatePhotoDto,
 } from './activities.dto.js';
 import { ActivitiesService } from './activities.service.js';
 import { MAX_PHOTOS, photoUploadOptions } from './upload.config.js';
@@ -90,6 +91,32 @@ export class ActivitiesController {
     @UploadedFiles() files: Express.Multer.File[] = [],
   ) {
     return this.activities.addPhotos(user, id, files, dto.captions);
+  }
+
+  @Patch(':id/photos/:photoId')
+  @ApiOperation({ summary: "Edit a photo's caption (author or admin)" })
+  @ApiOkResponse({ type: ActivityDto })
+  updatePhoto(
+    @CurrentUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('photoId', ParseIntPipe) photoId: number,
+    @Body() dto: UpdatePhotoDto,
+  ) {
+    return this.activities.updatePhoto(user, id, photoId, dto.caption);
+  }
+
+  @Delete(':id/photos/:photoId')
+  @ApiOperation({
+    summary: 'Delete a photo (author or admin), until the activity is completed',
+    description: 'Admins may also remove photos after completion.',
+  })
+  @ApiOkResponse({ type: ActivityDto })
+  removePhoto(
+    @CurrentUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('photoId', ParseIntPipe) photoId: number,
+  ) {
+    return this.activities.removePhoto(user, id, photoId);
   }
 
   @Patch(':id/outcome')

@@ -1,14 +1,15 @@
 "use client";
 
-import { Camera, ClipboardCheck, FileDown, ImagePlus, Pencil, Trash2, X } from "lucide-react";
+import { Camera, ClipboardCheck, FileDown, ImagePlus, Images, Pencil, Trash2, X } from "lucide-react";
+import Image from "next/image";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { ScheduleFields, StaffPicker } from "@/components/activity-fields";
 import { Dialog } from "@/components/dialog";
 import { SubmitButton } from "@/components/submit-button";
 import { Alert, Button, buttonStyles, Field, Input, Select, Textarea } from "@/components/ui";
-import { addActivityPhotos, deleteActivity, setActivityOutcome, updateActivity } from "@/lib/actions";
+import { addActivityPhotos, deleteActivity, deletePhoto, setActivityOutcome, updateActivity, updatePhotoCaption } from "@/lib/actions";
 import { cn } from "@/lib/cn";
-import type { Activity, FormState, Project, StaffRef } from "@/lib/types";
+import type { Activity, ActivityPhoto, FormState, Project, StaffRef } from "@/lib/types";
 
 const MAX_PHOTOS = 6;
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -20,6 +21,8 @@ export function ActivityActions({
   canEdit,
   canDelete,
   canAddPhotos,
+  canManagePhotos,
+  canDeletePhotos,
   canSetOutcome,
   canDownloadReport,
 }: {
@@ -29,15 +32,20 @@ export function ActivityActions({
   canEdit: boolean;
   canDelete: boolean;
   canAddPhotos: boolean;
+  /** Edit captions of existing photos. */
+  canManagePhotos: boolean;
+  canDeletePhotos: boolean;
   canSetOutcome: boolean;
   canDownloadReport: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [addingPhotos, setAddingPhotos] = useState(false);
+  const [managingPhotos, setManagingPhotos] = useState(false);
   const [settingOutcome, setSettingOutcome] = useState(false);
   const [deleting, startDelete] = useTransition();
 
-  if (!canEdit && !canDelete && !canAddPhotos && !canSetOutcome && !canDownloadReport) return null;
+  const showManagePhotos = canManagePhotos && activity.photos.length > 0;
+  if (!canEdit && !canDelete && !canAddPhotos && !showManagePhotos && !canSetOutcome && !canDownloadReport) return null;
 
   return (
     <div className="flex shrink-0 items-start gap-0.5">
@@ -50,6 +58,18 @@ export function ActivityActions({
           aria-label={`Add photos to ${activity.title}`}
         >
           <Camera className="size-4" aria-hidden />
+        </Button>
+      )}
+      {showManagePhotos && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="px-2"
+          onClick={() => setManagingPhotos(true)}
+          aria-label={`Manage photos of ${activity.title}`}
+          title="Edit or delete photos"
+        >
+          <Images className="size-4" aria-hidden />
         </Button>
       )}
       {canSetOutcome && (
@@ -102,6 +122,16 @@ export function ActivityActions({
           <AddPhotosForm activity={activity} onDone={() => setAddingPhotos(false)} />
         </Dialog>
       )}
+      {showManagePhotos && (
+        <Dialog
+          open={managingPhotos}
+          onClose={() => setManagingPhotos(false)}
+          title="Photos"
+          description={`${activity.title} · ${activity.project.code}`}
+        >
+          <ManagePhotos activity={activity} canDelete={canDeletePhotos} onDone={() => setManagingPhotos(false)} />
+        </Dialog>
+      )}
       {canSetOutcome && (
         <Dialog
           open={settingOutcome}
@@ -123,6 +153,67 @@ export function ActivityActions({
         </Dialog>
       )}
     </div>
+  );
+}
+
+function ManagePhotos({ activity, canDelete, onDone }: { activity: Activity; canDelete: boolean; onDone: () => void }) {
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-ink-muted">
+        {canDelete ? "Edit a caption or delete a photo." : "You can edit captions. Photos can't be deleted once the activity is completed."}
+      </p>
+      <ul className="space-y-3">
+        {activity.photos.map((photo) => (
+          <PhotoRow key={photo.id} activityId={activity.id} photo={photo} canDelete={canDelete} />
+        ))}
+      </ul>
+      <div className="flex justify-end border-t border-line pt-4">
+        <Button variant="secondary" onClick={onDone}>
+          Close
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function PhotoRow({ activityId, photo, canDelete }: { activityId: number; photo: ActivityPhoto; canDelete: boolean }) {
+  const [state, action] = useActionState(updatePhotoCaption.bind(null, activityId, photo.id), undefined);
+  const [deleting, startDelete] = useTransition();
+  const [error, setError] = useState<string>();
+
+  return (
+    <li className="flex items-start gap-3 rounded-md border border-line p-2">
+      <div className="relative size-16 shrink-0 overflow-hidden rounded-md bg-ink-50">
+        <Image src={photo.url} alt={photo.caption ?? "Activity photo"} fill sizes="64px" className="object-cover" />
+      </div>
+      <form action={action} className="min-w-0 flex-1 space-y-1.5">
+        <div className="flex gap-2">
+          <Input name="caption" defaultValue={photo.caption ?? ""} maxLength={160} placeholder="Add a short caption" aria-label="Caption" />
+          <SubmitButton size="sm" variant="secondary" pendingText="Saving">
+            Save
+          </SubmitButton>
+        </div>
+        {(state?.error || error) && <p className="text-xs text-danger">{state?.error ?? error}</p>}
+        {state?.success && <p className="text-xs text-success">{state.success}</p>}
+      </form>
+      {canDelete && (
+        <button
+          type="button"
+          disabled={deleting}
+          onClick={() => {
+            if (!confirm("Delete this photo? This can't be undone.")) return;
+            startDelete(async () => {
+              const result = await deletePhoto(activityId, photo.id);
+              setError(result?.error);
+            });
+          }}
+          className="shrink-0 rounded-lg p-2 text-ink-subtle transition-colors hover:bg-danger-50 hover:text-danger disabled:opacity-50"
+          aria-label="Delete photo"
+        >
+          <Trash2 className="size-4" />
+        </button>
+      )}
+    </li>
   );
 }
 

@@ -145,3 +145,11 @@ export class DateRangeQueryDto {
   @Matches(ISO_DATE, { message: 'to must be in YYYY-MM-DD format' })
   to: string;
 }
+
+export class UpdatePhotoDto {
+  @ApiPropertyOptional({ maxLength: 160, description: 'Empty clears the caption' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(160)
+  caption?: string;
+}
